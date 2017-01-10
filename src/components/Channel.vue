@@ -5,7 +5,7 @@
         <div class="time" v-show="channel.epg_start">
             <div class="start">{{ channel.epg_start | time }}</div>
             <div class="progress">
-                <div></div>
+                <div :style="{ 'width' : progress + '%' }"></div>
             </div>
             <div class="end">{{ channel.epg_end | time }}</div>
         </div>
@@ -13,30 +13,40 @@
 </template>
 <script>
     export default{
-        props: ['channel', 'serveroffset'],
+        props: ['channel', 'serverOffset'],
         data(){
             return{
-
+                progress: 0
             }
         },
         methods: {
-            formatDuration: function(s, e, o) {
-                return 'width: ' + Math.floor((Date.now() - o * 1000) - s / (e - s)) + '%'
-            },
-            formatTime: function(v, o) {
+            /*formatTime: function(v, o) {
                 var time = new Date(v * 1000 - o * 1000)
                 return time.getHours() + ':' + ((time.getMinutes()<10) ? '0'+time.getMinutes() : time.getMinutes())
-            },
+            },*/
             showVideo: function(i) {
                 console.log(i)
+            },
+            calcProgress: function() {
+                var now = Math.trunc((new Date()).getTime() / 1000)
+                this.progress = Math.trunc((now - this.channel.epg_start) / (this.channel.epg_end - this.channel.epg_start) * 100)
+                if(this.progress >= 100)
+                    this.$parent.$parent.getChannelsList()
             }
         },
         filters: {
             time: function(v) {
 //                var time = new Date(v * 1000 - this.serveroffset * 1000)
-                var time = new Date(v * 1000)
+                var time = new Date(v * 1000) // Todo: добавить сдвиг относительно сервера
                 return time.getHours() + ':' + ((time.getMinutes()<10) ? '0'+time.getMinutes() : time.getMinutes())
             }
+        },
+        created() {
+            this.calcProgress()
+            window.setInterval(() => {
+                this.calcProgress()
+                    //this.$parent.$parent.getChannelsList()
+            }, 5000);
         }
     }
 </script>
@@ -91,14 +101,16 @@
     }
     #channels .group > ul > li .time .progress {
         margin: 5px 40px 0;
-        background: #666;
+        background: #555;
         height: 6px;
         border-radius: 2px;
+        overflow: hidden;
     }
     #channels .group > ul > li .time .progress > div {
-        background: #eeac32;
         width: 50%;
         height: 6px;
         border-radius: 2px;
+        background: #eeac32;
+        background: linear-gradient(to top, rgba(238, 172, 50, .5), rgba(238, 172, 50, 1));
     }
 </style>

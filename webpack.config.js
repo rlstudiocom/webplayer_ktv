@@ -1,6 +1,5 @@
 var path = require('path');
 var webpack = require('webpack');
-require("font-awesome-webpack");
 
 module.exports = {
     entry: [

@@ -2,7 +2,7 @@
     <li class="group" v-show="isHidden(group.id)">
         <span :style="{ 'background-color': group.color }">{{group.name}}</span>
         <ul>
-            <Channel v-for="channel in group.channels" :channel="channel" :serveroffset="serveroffset"></Channel>
+            <Channel v-for="channel in group.channels" :channel="channel" :serverOffset="serverOffset"></Channel>
         </ul>
     </li>
 </template>
@@ -10,7 +10,7 @@
     import Channel from './Channel.vue'
 
     export default{
-        props: ['group', 'serveroffset', 'height'],
+        props: ['group', 'serverOffset', 'height'],
         components: { Channel },
         data(){
             return{
@@ -35,6 +35,7 @@
         text-transform: uppercase;
         display: block;
         text-decoration: none;
-        color: #000;
+        color: #fff;
+        background: linear-gradient(to top, rgba(0,0,0,.25), rgba(0,0,0,.1));
     }
 </style>

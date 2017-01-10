@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="channels">
         <ul>
-            <ChannelsGroup v-for="(group, key) in groups" :group="group" :serveroffset="serveroffset"></ChannelsGroup>
+            <ChannelsGroup v-for="(group, key) in groups" :group="group" :serverOffset="serverOffset"></ChannelsGroup>
         </ul>
     </div>
 
@@ -16,35 +16,41 @@
             return {
                 groups: [],
                 openId: 1,
-                servertime: 0,
-                serveroffset: 0 // разница с сервером в секундах
+                serverTime: 0,
+                serverOffset: 0, // разница с сервером в секундах
+                lastUpdated: 0 // время последнего запроса списка каналов
             }
         },
         components: { ChannelsGroup },
         methods: {
+            getNow: function () {
+                return Math.trunc((new Date()).getTime() / 1000)
+            },
             getChannelsList: function () {
-                var self = this;
-                jsonp(this.$parent.server + 'channel_list?sid=' + this.$parent.account.sid + '&icon=3', null, function (err, data) {
-                    if (err) {
-                        console.error(err.message);
-                    } else {
-                        if(data.error) {
-                            self.$parent.hasError(data.error.code)
+                var self = this
+
+                if(!self.lastUpdated || (self.getNow() - self.lastUpdated) >= 60) { // время получение ответа, чтобы не повторять запрос
+                    self.lastUpdated = self.getNow()
+                    jsonp(this.$parent.server + 'channel_list?sid=' + this.$parent.account.sid + '&icon=3', null, function (err, data) {
+                        if (err) {
+                            console.error(err.message);
                         }
                         else {
-                            self.groups = data.groups;
-                            self.servertime = data.servertime;
-                            self.serveroffset = Math.floor(Date.now() - self.servertime * 1000); //
-                            //console.log(self.serveroffset)
+                            if(data.error) {
+                                self.$parent.hasError(data.error.code)
+                            }
+                            else {
+                                self.groups = data.groups;
+                                self.serverTime = data.servertime;
+                                self.serverOffset = Math.floor(Date.now() - self.serverTime * 1000) // Todo: вычислять корректно сдвиг относительно сервера в часах
+                                //console.log(self.serverOffset)
+                            }
                         }
-                    }
-                });
-
-                self.height = self.$el.offsetHeight; //  не знал куда пристроить
-                console.log(self.height);
+                    })
+                }
             }
         },
-        mounted: function () {
+        created: function () {
             this.getChannelsList()
         }
     }
