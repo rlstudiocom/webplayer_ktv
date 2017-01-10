@@ -1,22 +1,37 @@
 <template lang="html">
-    <li>
+    <li @click="getDetail()">
+        <div class="type">{{ message.type }}</div>
         <div class="name">{{ message.title }}</div>
         <div class="date">{{ message.dt_create | datetime }}</div>
+        <div class="body" v-show="message.body">{{ message.body }}</div>
     </li>
 </template>
 <script>
+    import jsonp from 'jsonp'
+
     export default{
         props: ['message'],
         data(){
             return{
-                progress: 0
+
             }
         },
         methods: {
-            getDetail: function (id) {
-                
+            getDetail: function () {
+                var self = this
+
+                jsonp(this.$parent.$parent.server + 'messages?cmd=get&id=' + this.mes.id + '&sid=' + this.$parent.$parent.account.sid, null, function (err, data) {
+                    if (err)
+                        console.error(err.message);
+                    else {
+                        if(data.error)
+                            self.$parent.$parent.hasError(data.error.code)
+                        else
+                            self.message.body = data.message.body
+                    }
+                })
             },
-            getDelete: function (id) {
+            getDelete: function () {
                 
             }
         },
@@ -33,32 +48,45 @@
     #messages > ul > li {
         position: relative;
         background: transparent no-repeat 2px 50%;
-        padding: 2px 2px 2px 6px;
+        padding: 6px;
         border-bottom: solid 1px rgba(255,255,255,.1);
-        height: 60px;
-        /*transition: height 2s ease;*/
+        transition: height 2s ease;
     }
-    #channels .group > ul > li:hover{
+    #messages > ul > li:hover{
         background-color: rgba(0,0,0,.2);
         /*height: auto;*/
     }
-    #channels .group > ul > li .name {
+    #messages > ul > li .type {
+        position: absolute;
+        top: 10px;
+        right: 6px;
+        font-size: 10px;
+        line-height: 10px;
+        background: #eeac32;
+        background: linear-gradient(to top, rgba(238, 172, 50, .5), rgba(238, 172, 50, 1));
+        padding: 2px 6px 1px;
+        border-radius: 6px;
+        text-transform: uppercase;
+    }
+    #messages > ul > li .date {
         font-size: 14px;
+        color: #dedede;
+    }
+    #messages > ul > li .name {
+        font-size: 16px;
         font-weight: bold;
     }
-    #channels .group > ul > li .archive {
+    #messages > ul > li .archive {
         position: absolute;
         top: 2px;
         left: 4px;
         font-size: 12px;
         color: #00b200;
     }
-    #channels .group > ul > li .programm {
+    #messages > ul > li .body {
         color: #dedede;
         font-size: 12px;
-        line-height: 13px;
-        min-height: 26px;
-        height: 26px;
+        line-height: 14px;
         overflow: hidden;
         /*transition: height 2s ease;*/
     }

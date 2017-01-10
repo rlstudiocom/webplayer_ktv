@@ -1,5 +1,5 @@
 <template lang="html">
-    <li :style="{ 'background-image': 'url(' + channel.big_icon_link + ')' }" @click="showVideo(channel.id)">
+    <li :style="{ 'background-image': 'url(' + channel.big_icon_link + ')' }" @click="showVideo()">
         <div class="archive" v-show="channel.have_archive" title="Есть архив"><i class="fa fa-circle"></i></div>
         <div class="name">{{ channel.name }}</div>
         <div class="programm" v-bind:title="channel.epg_progname">{{ channel.epg_progname }}</div>
@@ -25,8 +25,8 @@
                 var time = new Date(v * 1000 - o * 1000)
                 return time.getHours() + ':' + ((time.getMinutes()<10) ? '0'+time.getMinutes() : time.getMinutes())
             },*/
-            showVideo: function(i) {
-                console.log(i)
+            showVideo: function() {
+                console.log(this.channel.id)
             },
             calcProgress: function() {
                 var now = Math.trunc((new Date()).getTime() / 1000)

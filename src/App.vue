@@ -5,29 +5,30 @@
 
             <div id="sidenav">
 
-                <ul class="nav" role="tablist">
-                    <li role="presentation"><span title="Показать боковое меню" @click.prevent="sidemenuToggle"><i
-                            class="fa fa-bars"></i></span></li>
-                    <li role="presentation"><span aria-controls="channels" role="tab" data-toggle="tab"
-                                                                 title="Каналы"><i class="fa fa-th-list"></i></span>
+                <ul role="tablist">
+                    <li @click="sidemenuToggle">
+                        <span title="Показать боковое меню"><i class="fa fa-bars"></i></span>
                     </li>
-                    <li role="presentation" class="active"><span aria-controls="videoteka" role="tab" data-toggle="tab"
-                                                  title="Видеотека" style="display:none"><i
-                            class="fa fa-film"></i></span></li>
-                    <li role="presentation"><span aria-controls="messages" role="tab" data-toggle="tab"><i
-                            class="fa fa-envelope"></i> <span v-show="newMessages">{{ newMessages }}</span></span></li>
-                    <li role="presentation"><span aria-controls="settings" role="tab" data-toggle="tab"><i
-                            class="fa fa-cog"></i></span></li>
-                    <li role="presentation" class="bottom"><span title="Выход" @click.prevent="getLogout"><i
-                            class="fa fa-sign-out"></i></span></li>
-                </ul>
-
-                <ul class="panels" v-show="sidemenuShow">
-                    <li id="channelsPanel">
-                        <ChannelsList></ChannelsList>
+                    <li @click="showChannels">
+                        <span title="Каналы" class="active"><i class="fa fa-th-list"></i></span>
+                        <div id="channelsPanel" v-show="sidemenuTab == 'channels'">
+                            <ChannelsList></ChannelsList>
+                        </div>
                     </li>
-                    <li id="messagesPanel">
-                        <MessagesList></MessagesList>
+                    <li style="display:none">
+                        <span title="Видеотека"><i class="fa fa-film"></i></span>
+                    </li>
+                    <li @click="showMessages">
+                        <span><i class="fa fa-envelope"></i> <span v-show="newMessages">{{ newMessages }}</span></span>
+                        <div id="messagesPanel" v-show="sidemenuTab == 'messages'">
+                            <MessagesList></MessagesList>
+                        </div>
+                    </li>
+                    <li style="display:none">
+                        <span><i class="fa fa-cog"></i></span>
+                    </li>
+                    <li>
+                        <span title="Выход" @click.prevent="getLogout"><i class="fa fa-sign-out"></i></span>
                     </li>
                 </ul>
 
@@ -90,9 +91,10 @@
                     pass: '',
                     sid: false
                 },
-                sidemenuShow: true,
                 errorShow: false,
                 serverOffeset: 0,
+                sidemenuTab: 'channels',
+                lastTab: 'channels',
                 newMessages: 0,
                 promo: [
                     {
@@ -111,19 +113,30 @@
                         d: 'Благодаря адаптивному вещанию, Вы сможете смотреть HD-каналы даже при низкой скорости Интернета'
                     },
                 ],
-                videoOptions: {
+                /*videoOptions: {
                     source: {
                         type: "video/webm",
                         src: 'https://cdn.theguardian.tv/webM/2015/07/20/150716YesMen_synd_768k_vp8.webm',
                         // if you need custom player state changed event name, you can config it like this
                         customEventName: 'my-player-state-changed-event-custom-name'
                     }
-                }
+                }*/
             }
         },
         methods: {
             sidemenuToggle: function () {
-                this.sidemenuShow = !this.sidemenuShow
+                if(this.sidemenuTab)
+                    this.sidemenuTab = false
+                else
+                    this.sidemenuTab = this.lastTab
+            },
+            showMessages: function() {
+                this.sidemenuTab = 'messages'
+                this.lastTab = 'messages'
+            },
+            showChannels: function() {
+                this.sidemenuTab = 'channels'
+                this.lastTab = 'channels'
             },
             errorToggle: function () {
                 this.errorShow = !this.errorShow
@@ -375,46 +388,43 @@
         text-decoration: none;
     }
 
-    #sidenav > ul {
+    #sidenav {
         height: 100%;
         position: absolute;
         left: 0;
         top: 0;
+        z-index: 999;
+        background: rgba(0, 0, 0, 0.2);
     }
 
-    #sidenav .nav {
-        width: 46px;
-        background-color: #2a2a2a;
-    }
-
-    #sidenav .nav li {
+    #sidenav > ul > li {
         border-bottom: solid 1px #3f3f3f;
     }
 
-    #sidenav .nav li:last-child {
+    #sidenav > ul > li:last-child {
         position: absolute;
         bottom: 0;
         border-bottom: 0;
         border-top: solid 1px #3f3f3f;
     }
 
-    #sidenav .nav li.active {
+    #sidenav > ul > li.active {
         background-color: #3f3f3f;
     }
 
-    #sidenav .nav li > span {
+    #sidenav > ul > li > span {
         display: inline-block;
         padding: 12px 15px;
         line-height: 14px;
         margin: 0;
-        width: 12px;
+        width: 15px;
         height: 18px;
         text-align: center;
         cursor: pointer;
         position: relative;
     }
 
-    #sidenav .nav li > span > span {
+    #sidenav > ul > li > span > span {
         position: absolute;
         display: inline-block;
         top: 6px;
@@ -431,15 +441,14 @@
         font-weight: bold;
     }
 
-    #sidenav .panels {
+    #sidenav > ul > li > div {
+        position: absolute;
+        top: 0;
+        left: 0;
         height: 100%;
         margin-left: 45px;
         background: rgba(0, 0, 0, 0.2);
-        width: 20%;
-    }
-
-    #channelsPanel {
-        display: none;
+        width: 320px;
     }
 
     #sidenav .panels > li {

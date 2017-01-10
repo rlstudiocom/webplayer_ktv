@@ -1,5 +1,5 @@
 <template lang="html">
-    <li class="group" v-show="isHidden(group.id)">
+    <li class="group" v-show="isHidden()">
         <span :style="{ 'background-color': group.color }">{{group.name}}</span>
         <ul>
             <Channel v-for="channel in group.channels" :channel="channel" :serverOffset="serverOffset"></Channel>
@@ -18,8 +18,8 @@
             }
         },
         methods: {
-            isHidden: function (v) {
-                return this.hidden.indexOf(v) < 0 ? 1 : 0
+            isHidden: function () {
+                return this.hidden.indexOf(this.group.id) < 0 ? 1 : 0
             }
         }
     }
