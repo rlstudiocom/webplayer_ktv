@@ -42,7 +42,8 @@
                             else {
                                 self.groups = data.groups;
                                 self.serverTime = data.servertime;
-                                self.serverOffset = Math.floor(Date.now() - self.serverTime * 1000) // Todo: вычислять корректно сдвиг относительно сервера в часах
+                                self.$parent.newMessages = data.messages;
+                                self.$parent.serverOffset = Math.floor(Date.now() - self.serverTime * 1000) // Todo: вычислять корректно сдвиг относительно сервера в часах
                                 //console.log(self.serverOffset)
                             }
                         }

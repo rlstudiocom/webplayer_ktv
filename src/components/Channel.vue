@@ -1,5 +1,6 @@
 <template lang="html">
     <li :style="{ 'background-image': 'url(' + channel.big_icon_link + ')' }" @click="showVideo(channel.id)">
+        <div class="archive" v-show="channel.have_archive" title="Есть архив"><i class="fa fa-circle"></i></div>
         <div class="name">{{ channel.name }}</div>
         <div class="programm" v-bind:title="channel.epg_progname">{{ channel.epg_progname }}</div>
         <div class="time" v-show="channel.epg_start">
@@ -52,6 +53,7 @@
 </script>
 <style lang="css">
     #channels .group > ul > li {
+        position: relative;
         background: transparent no-repeat 2px 50%;
         background-size: 48px;
         padding: 2px 2px 2px 54px;
@@ -66,6 +68,13 @@
     #channels .group > ul > li .name {
         font-size: 14px;
         font-weight: bold;
+    }
+    #channels .group > ul > li .archive {
+        position: absolute;
+        top: 2px;
+        left: 4px;
+        font-size: 12px;
+        color: #00b200;
     }
     #channels .group > ul > li .programm {
         color: #dedede;

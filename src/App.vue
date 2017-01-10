@@ -6,16 +6,16 @@
             <div id="sidenav">
 
                 <ul class="nav" role="tablist">
-                    <li role="presentation"><span title="Каналы" @click.prevent="sidemenuToggle"><i
+                    <li role="presentation"><span title="Показать боковое меню" @click.prevent="sidemenuToggle"><i
                             class="fa fa-bars"></i></span></li>
-                    <li role="presentation" class="active"><span aria-controls="channels" role="tab" data-toggle="tab"
+                    <li role="presentation"><span aria-controls="channels" role="tab" data-toggle="tab"
                                                                  title="Каналы"><i class="fa fa-th-list"></i></span>
                     </li>
-                    <li role="presentation"><span aria-controls="videoteka" role="tab" data-toggle="tab"
+                    <li role="presentation" class="active"><span aria-controls="videoteka" role="tab" data-toggle="tab"
                                                   title="Видеотека" style="display:none"><i
                             class="fa fa-film"></i></span></li>
                     <li role="presentation"><span aria-controls="messages" role="tab" data-toggle="tab"><i
-                            class="fa fa-envelope"></i></span></li>
+                            class="fa fa-envelope"></i> <span v-show="newMessages">{{ newMessages }}</span></span></li>
                     <li role="presentation"><span aria-controls="settings" role="tab" data-toggle="tab"><i
                             class="fa fa-cog"></i></span></li>
                     <li role="presentation" class="bottom"><span title="Выход" @click.prevent="getLogout"><i
@@ -25,6 +25,9 @@
                 <ul class="panels" v-show="sidemenuShow">
                     <li id="channelsPanel">
                         <ChannelsList></ChannelsList>
+                    </li>
+                    <li id="messagesPanel">
+                        <MessagesList></MessagesList>
                     </li>
                 </ul>
 
@@ -74,10 +77,11 @@
     import cookie from 'vue-cookie'
     //import VideoPlayer from 'vue-video-player'
     import ChannelsList from './components/ChannelsList.vue'
+    import MessagesList from './components/MessagesList.vue'
 
     export default {
         name: 'app',
-        components: { ChannelsList },
+        components: { ChannelsList, MessagesList },
         data () {
             return {
                 server: 'https://rustvt.kartina.tv/api/json/',
@@ -88,6 +92,8 @@
                 },
                 sidemenuShow: true,
                 errorShow: false,
+                serverOffeset: 0,
+                newMessages: 0,
                 promo: [
                     {
                         i: 'icon-world.png',
@@ -396,7 +402,7 @@
         background-color: #3f3f3f;
     }
 
-    #sidenav .nav span {
+    #sidenav .nav li > span {
         display: inline-block;
         padding: 12px 15px;
         line-height: 14px;
@@ -405,6 +411,24 @@
         height: 18px;
         text-align: center;
         cursor: pointer;
+        position: relative;
+    }
+
+    #sidenav .nav li > span > span {
+        position: absolute;
+        display: inline-block;
+        top: 6px;
+        right: 2px;
+        background: #eeac32;
+        /*background: linear-gradient(to top, rgba(238, 172, 50, .5), rgba(238, 172, 50, 1));*/
+        border-radius: 7px;
+        font-size: 8px;
+        line-height: 10px;
+        width: 10px;
+        text-align: center;
+        padding: 2px;
+        color: #000;
+        font-weight: bold;
     }
 
     #sidenav .panels {
@@ -412,6 +436,10 @@
         margin-left: 45px;
         background: rgba(0, 0, 0, 0.2);
         width: 20%;
+    }
+
+    #channelsPanel {
+        display: none;
     }
 
     #sidenav .panels > li {
