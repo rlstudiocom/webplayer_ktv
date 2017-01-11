@@ -45,6 +45,33 @@
 
             <div id="player">
                 <!--VideoPlayer></VideoPlayer-->
+				<div class="videogular-container">
+					<videogular vg-player-ready="controller.onPlayerReady($API)" vg-complete="controller.onCompleteVideo()" vg-theme="controller.config.theme.url">
+						<vg-media vg-src="controller.config.sources" vg-hls
+								  vg-tracks="controller.config.tracks">
+						</vg-media>
+
+						<vg-controls>
+							<vg-play-pause-button></vg-play-pause-button>
+							<vg-time-display>{{ currentTime | date:'mm:ss':'+0000' }}</vg-time-display>
+							<vg-scrub-bar>
+								<vg-scrub-bar-current-time></vg-scrub-bar-current-time>
+							</vg-scrub-bar>
+							<vg-time-display>{{ timeLeft | date:'mm:ss':'+0000' }}</vg-time-display>
+							<vg-volume>
+								<vg-mute-button></vg-mute-button>
+								<vg-volume-bar></vg-volume-bar>
+							</vg-volume>
+							<vg-fullscreen-button></vg-fullscreen-button>
+								<div class="my-button iconButton"><a ng-click="controller.show_playlist();" target="_blank">Плейлист</a></div>
+								<div class="my-button iconButton"><a ng-click="controller.logout();"  target="_blank">Выход</a></div>
+						</vg-controls>
+
+						<vg-overlay-play></vg-overlay-play>
+						<vg-buffering></vg-buffering>
+						<vg-poster vg-url="controller.config.plugins.poster"></vg-poster>
+					</videogular>
+				</div>
             </div>
 
         </div>
@@ -66,9 +93,9 @@
                     </div>
                     <form action="" @submit.prevent="getLogon">
                         <label for="">Абонемент</label>
-                        <input type="text" v-model.number="login.login">
+                        <input id="user_login" type="text" v-model.number="login.login">
                         <label for="">Пароль</label>
-                        <input type="password" v-model.number="login.pass">
+                        <input id="user_pass" type="password" v-model.number="login.pass">
                         <button type="submit">Войти</button>
                     </form>
                     <a href="https://kartina.tv/shop" id="shop"><i class="fa fa-shopping-cart"></i> <span>Нет абонемента?</span></a>

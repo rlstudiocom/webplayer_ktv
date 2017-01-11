@@ -26,7 +26,8 @@
                 return time.getHours() + ':' + ((time.getMinutes()<10) ? '0'+time.getMinutes() : time.getMinutes())
             },*/
             showVideo: function() {
-                console.log(this.channel.id)
+                console.log("starting...",this.channel.id)
+		GeneralKartinaPlayer.set_video(this.channel.id);
             },
             calcProgress: function() {
                 var now = Math.trunc((new Date()).getTime() / 1000)
