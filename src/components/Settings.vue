@@ -3,33 +3,33 @@
         <ul>
             <li>
                 <span>Абонемент</span>
-                {{ account.account.login }}
+                {{ account.login }}
             </li>
             <li>
                 <span>Пакет</span>
-                {{ account.account.packet_name }}
+                {{ account.packet_name }}
             </li>
             <li>
                 <span>Дата окончания</span>
-                {{ account.account.packet_expire | datetime }}
+                {{ account.packet_expire | datetime }}
             </li>
         </ul>
         <div>
             <span>Сервер вещания</span>
-            <select v-model="account.settings.stream_server.value" @change="sendSettings('stream_server')">
-                <option v-for="server in account.settings.stream_server.list" v-bind:value="server.ip">{{ server.descr }}</option>
+            <select v-model="settings.stream_server.value" @change="sendSettings('stream_server')">
+                <option v-for="server in settings.stream_server.list" v-bind:value="server.ip">{{ server.descr }}</option>
             </select>
         </div>
         <div>
             <span>Таймшифт</span>
-            <select v-model="account.settings.timeshift.value" @change="sendSettings('timeshift')">
-                <option v-for="value in account.settings.timeshift.list" v-bind:value="value">{{ value }}</option>
+            <select v-model="settings.timeshift.value" @change="sendSettings('timeshift')">
+                <option v-for="value in settings.timeshift.list" v-bind:value="value">{{ value }}</option>
             </select>
         </div>
         <div>
             <span>Кеширование</span>
-            <select v-model="account.settings.http_caching.value" @change="sendSettings('http_caching')">
-                <option v-for="value in account.settings.http_caching.list" v-bind:value="value">{{ value }}</option>
+            <select v-model="settings.http_caching.value" @change="sendSettings('http_caching')">
+                <option v-for="value in settings.http_caching.list" v-bind:value="value">{{ value }}</option>
             </select>
         </div>
     </div>
@@ -38,18 +38,18 @@
     import jsonp from 'jsonp'
 
     export default{
-        props: ['account'],
+        props: ['account', 'settings'],
         methods: {
             sendSettings: function (k) {
                 var self = this
-                jsonp(this.$parent.server + 'settings_set?var=' + k + '&val=' + self.account.settings[k].value, null, function (err, data) {
+                jsonp(this.$parent.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
                     if (err)
                         console.error(err.message);
                     else {
                         if(data.error)
-                            self.$parent.hasError(data.error.code)
+                            self.$parent.hasError(data.error)
                         else
-                            self.$parent.showToast('Настройки обновлены (' + k + '=' + self.account.settings[k].value + ')', 'info')
+                            self.$parent.showToast('Настройки обновлены (' + k + '=' + self.settings[k].value + ')', 'info')
                     }
                 })
             }

@@ -1,7 +1,7 @@
 <template>
     <div id="app">
 
-        <div id="main" v-if="login.sid">
+        <div id="main" v-if="account.login">
 
             <div id="sidenav">
 
@@ -27,7 +27,7 @@
                     <li @click="showTab('settings')">
                         <span><i class="fa fa-cog"></i></span>
                         <div id="settingsPanel" v-show="sidemenuTab == 'settings'">
-                            <Settings :account="account" ref="settings"></Settings>
+                            <Settings :account="account" :settings="settings" ref="settings"></Settings>
                         </div>
                     </li>
                     <li>
@@ -86,7 +86,6 @@
 
 <script>
     import jsonp from 'jsonp'
-    import cookie from 'vue-cookie'
 
     import 'vue-toast/dist/vue-toast.min.css'
     import vueToast from 'vue-toast'
@@ -110,21 +109,18 @@
                 },
                 login: {
                     login: '',
-                    pass: '',
-                    sid: false
+                    pass: ''
                 },
                 account: {
-                    account: {
-                        login: '',
-                        packet_name: '',
-                        packet_expire: ''
-                    },
-                    settings: {
-                        stream_server: { value: '', list: [] },
-                        timeshift: { value: '', list: [] },
-                        http_caching: { value: '', list: [] },
-                        stream_standard: { value: 'hls_h264' }
-                    }
+                    login: '',
+                    packet_name: '',
+                    packet_expire: ''
+                },
+                settings: {
+                    stream_server: { value: '', list: [] },
+                    timeshift: { value: '', list: [] },
+                    http_caching: { value: '', list: [] },
+                    stream_standard: { value: 'hls_h264' }
                 },
                 errorShow: false,
                 serverOffeset: 0,
@@ -170,7 +166,6 @@
             checkAccount: function () {
                 var self = this
                 self.sidemenuTab = self.lastTab = 'channels'
-                self.login.sid = cookie.get('sid')
                 jsonp(self.server + 'account?settings=1', null, function (err, data) {
                     if (err) {
                         console.error(err.message)
@@ -178,11 +173,11 @@
                         if (data.error)
                             self.hasError(data.error)
                         else {
-                            self.showToast('Обновлена сессия', 'info')
-                            cookie.set('sid', self.login.sid, 30) // продлим еще на 30 дней
-                            self.account = data
-                            if(self.account.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
-                                self.account.settings.stream_standard.value = 'hls_h264'
+                            self.showToast('Сессия обновлена', 'info')
+                            self.account = data.account
+                            self.settings = data.settings
+                            if(self.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
+                                self.settings.stream_standard.value = 'hls_h264'
                                 self.$refs.settings.sendSettings('stream_standard')
                             }
                         }
@@ -195,16 +190,12 @@
                     if (err) {
                         console.error(err.message)
                     } else {
-                        if (data.error) {
+                        if (data.error)
                             self.errorShow = true
-                            self.login.pass = ''
-                        }
-                        else {
-                            cookie.set('sid', data.sid, 30)
+                        else
                             self.checkAccount()
-                            self.login.sid = cookie.get('sid')
-                        }
-//                        console.log(data)
+
+                         self.login.pass = ''
                     }
                 })
             },
@@ -214,15 +205,10 @@
                     if (err) {
                         console.error(err.message);
                     } else {
-                        if (data.error) {
+                        if (data.error)
                             self.errorShow = true;
-                            self.login.pass = ''
-                        }
-                        else {
+                        else
                             self.showToast('Вы вышли из аккаунта', 'info')
-                            cookie.delete('sid')
-                            self.login.sid = false
-                        }
                     }
                 })
             },
@@ -237,10 +223,8 @@
 
                 this.showToast(error.message, 'alert')
 
-                if (error.code == 12 || error.code == 11) {
-                    cookie.delete('sid');
-                    this.login.sid = false
-                }
+                if (error.code == 12 || error.code == 11)
+                    this.account.login = ''
             }
         },
         computed: {

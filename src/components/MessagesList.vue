@@ -4,9 +4,7 @@
             <li class="empty" v-show="!messages">Нет ни одного сообщения</li>
             <Message v-for="message in messages" :message="message"></Message>
         </ul>
-
     </div>
-
 </template>
 
 <script>
