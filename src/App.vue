@@ -1,15 +1,15 @@
 <template>
     <div id="app">
 
-        <div id="main" v-if="account.sid">
+        <div id="main" v-if="login.sid">
 
             <div id="sidenav">
 
                 <ul role="tablist">
-                    <li @click="sidemenuToggle">
+                    <li @click="showTab(false)">
                         <span title="Показать боковое меню"><i class="fa fa-bars"></i></span>
                     </li>
-                    <li @click="showChannels">
+                    <li @click="showTab('channels')">
                         <span title="Каналы" class="active"><i class="fa fa-th-list"></i></span>
                         <div id="channelsPanel" v-show="sidemenuTab == 'channels'">
                             <ChannelsList></ChannelsList>
@@ -18,14 +18,23 @@
                     <li style="display:none">
                         <span title="Видеотека"><i class="fa fa-film"></i></span>
                     </li>
-                    <li @click="showMessages">
+                    <li @click="showTab('messages')">
                         <span><i class="fa fa-envelope"></i> <span v-show="newMessages">{{ newMessages }}</span></span>
                         <div id="messagesPanel" v-show="sidemenuTab == 'messages'">
                             <MessagesList></MessagesList>
                         </div>
                     </li>
-                    <li style="display:none">
+                    <li @click="showTab('settings')">
                         <span><i class="fa fa-cog"></i></span>
+                        <div id="settingsPanel" v-show="sidemenuTab == 'settings'">
+                            <Settings :account="account" ref="settings"></Settings>
+                        </div>
+                    </li>
+                    <li>
+                        <span id="epgBtn"></span>
+                        <div id="epgPanel" v-show="sidemenuTab == 'epg'">
+                            <EpgList :channel="channel"></EpgList>
+                        </div>
                     </li>
                     <li>
                         <span title="Выход" @click.prevent="getLogout"><i class="fa fa-sign-out"></i></span>
@@ -35,7 +44,7 @@
             </div>
 
             <div id="player">
-                <!--<video-player :options="videoOptions"></video-player>-->
+                <!--VideoPlayer></VideoPlayer-->
             </div>
 
         </div>
@@ -57,9 +66,9 @@
                     </div>
                     <form action="" @submit.prevent="getLogon">
                         <label for="">Абонемент</label>
-                        <input type="text" v-model.number="account.login">
+                        <input type="text" v-model.number="login.login">
                         <label for="">Пароль</label>
-                        <input type="password" v-model.number="account.pass">
+                        <input type="password" v-model.number="login.pass">
                         <button type="submit">Войти</button>
                     </form>
                     <a href="https://kartina.tv/shop" id="shop"><i class="fa fa-shopping-cart"></i> <span>Нет абонемента?</span></a>
@@ -70,32 +79,65 @@
             </div>
         </div>
 
+        <vueToast ref="toast"></vueToast>
+
     </div>
 </template>
 
 <script>
     import jsonp from 'jsonp'
     import cookie from 'vue-cookie'
-    //import VideoPlayer from 'vue-video-player'
+
+    import 'vue-toast/dist/vue-toast.min.css'
+    import vueToast from 'vue-toast'
+
+    import VideoPlayer from './components/VideoPlayer.vue'
     import ChannelsList from './components/ChannelsList.vue'
+    import EpgList from './components/EpgList.vue'
     import MessagesList from './components/MessagesList.vue'
+    import Settings from './components/Settings.vue'
 
     export default {
         name: 'app',
-        components: { ChannelsList, MessagesList },
+        components: { ChannelsList, EpgList, MessagesList, Settings, VideoPlayer, vueToast },
         data () {
             return {
-                server: 'https://rustvt.kartina.tv/api/json/',
-                account: {
+                server: 'https://iptv.kartina.tv/api/json/',
+                channel: {
+                    'id': 2,
+                    'name': "Первый",
+                    'big_icon_link': "http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png"
+                },
+                login: {
                     login: '',
                     pass: '',
                     sid: false
                 },
+                account: {
+                    account: {
+                        login: '',
+                        packet_name: '',
+                        packet_expire: ''
+                    },
+                    settings: {
+                        stream_server: { value: '', list: [] },
+                        timeshift: { value: '', list: [] },
+                        http_caching: { value: '', list: [] },
+                        stream_standard: { value: 'hls_h264' }
+                    }
+                },
                 errorShow: false,
                 serverOffeset: 0,
-                sidemenuTab: 'channels',
-                lastTab: 'channels',
+                sidemenuTab: false,
+                lastTab: false,
                 newMessages: 0,
+                toastSettings: {
+                    maxToasts: 6,
+                    position: 'bottom right',
+                    theme: 'error',
+                    timeLife: 3000,
+                    closeBtn: false
+                },
                 promo: [
                     {
                         i: 'icon-world.png',
@@ -112,57 +154,57 @@
                         t: 'Выбери свое качество',
                         d: 'Благодаря адаптивному вещанию, Вы сможете смотреть HD-каналы даже при низкой скорости Интернета'
                     },
-                ],
-                /*videoOptions: {
-                    source: {
-                        type: "video/webm",
-                        src: 'https://cdn.theguardian.tv/webM/2015/07/20/150716YesMen_synd_768k_vp8.webm',
-                        // if you need custom player state changed event name, you can config it like this
-                        customEventName: 'my-player-state-changed-event-custom-name'
-                    }
-                }*/
+                ]
             }
         },
         methods: {
-            sidemenuToggle: function () {
-                if(this.sidemenuTab)
-                    this.sidemenuTab = false
+            showTab: function(k) {
+                if(!k)
+                    this.sidemenuTab = !this.sidemenuTab ? this.lastTab : false
                 else
-                    this.sidemenuTab = this.lastTab
-            },
-            showMessages: function() {
-                this.sidemenuTab = 'messages'
-                this.lastTab = 'messages'
-            },
-            showChannels: function() {
-                this.sidemenuTab = 'channels'
-                this.lastTab = 'channels'
+                    this.sidemenuTab = this.lastTab = k
             },
             errorToggle: function () {
                 this.errorShow = !this.errorShow
             },
             checkAccount: function () {
-                if (cookie.get('sid')) {
-                    this.account.sid = cookie.get('sid');
-                    cookie.set('sid', this.account.sid, 30);  // продлим еще на 30 дней
-                }
+                var self = this
+                self.sidemenuTab = self.lastTab = 'channels'
+                self.login.sid = cookie.get('sid')
+                jsonp(self.server + 'account?settings=1', null, function (err, data) {
+                    if (err) {
+                        console.error(err.message)
+                    } else {
+                        if (data.error)
+                            self.hasError(data.error)
+                        else {
+                            self.showToast('Обновлена сессия', 'info')
+                            cookie.set('sid', self.login.sid, 30) // продлим еще на 30 дней
+                            self.account = data
+                            if(self.account.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
+                                self.account.settings.stream_standard.value = 'hls_h264'
+                                self.$refs.settings.sendSettings('stream_standard')
+                            }
+                        }
+                    }
+                })
             },
             getLogon: function () {
                 var self = this;
-                jsonp(this.server + 'login?login=' + this.account.login + '&pass=' + this.account.pass + '&soft_id=web-ktv-002&cli_serial=webplayer&callback=callback', null, function (err, data) {
+                jsonp(this.server + 'login?login=' + this.login.login + '&pass=' + this.login.pass + '&soft_id=web-ktv-002&cli_serial=webplayer', null, function (err, data) {
                     if (err) {
-                        console.error(err.message);
+                        console.error(err.message)
                     } else {
                         if (data.error) {
-                            self.errorShow = true;
-                            self.account.pass = ''
+                            self.errorShow = true
+                            self.login.pass = ''
                         }
                         else {
-                            cookie.set('sid', data.sid, 30);
-                            self.account.sid = cookie.get('sid')
+                            cookie.set('sid', data.sid, 30)
+                            self.checkAccount()
+                            self.login.sid = cookie.get('sid')
                         }
-
-                        console.log(data);
+//                        console.log(data)
                     }
                 })
             },
@@ -174,24 +216,45 @@
                     } else {
                         if (data.error) {
                             self.errorShow = true;
-                            self.account.pass = ''
+                            self.login.pass = ''
                         }
                         else {
-                            cookie.delete('sid');
-                            self.account.sid = false
+                            self.showToast('Вы вышли из аккаунта', 'info')
+                            cookie.delete('sid')
+                            self.login.sid = false
                         }
                     }
                 })
             },
-            hasError: function (code) {
-                if (code == 12) {
+            showToast: function (message, theme) {
+                this.$refs.toast.showToast(message, {
+                    theme: theme,
+                    timeLife: 3000,
+                    closeBtn: false
+                })
+            },
+            hasError: function (error) {
+
+                this.showToast(error.message, 'alert')
+
+                if (error.code == 12 || error.code == 11) {
                     cookie.delete('sid');
-                    this.account.sid = false
+                    this.login.sid = false
                 }
+            }
+        },
+        computed: {
+            player() {
+                return this.$refs.videoPlayer.player
             }
         },
         mounted: function () {
             this.checkAccount()
+
+//            this.vueToasts.setOptions({
+//                maxToasts: 6,
+//                position: 'right bottom'
+//            })
         }
     }
 
@@ -200,7 +263,7 @@
 <style>
     @import url('https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,900&subset=cyrillic');
 
-    html, body {
+    html, body, #app {
         width: 100%;
         height: 100%;
         background: #2a2a2a url(assets/43a9a631.png);
@@ -209,6 +272,7 @@
         padding: 0;
         font-family: 'Roboto', sans-serif;
         overflow: hidden;
+        position: relative;
     }
 
     .clear {
@@ -397,15 +461,9 @@
         background: rgba(0, 0, 0, 0.2);
     }
 
-    #sidenav > ul > li {
-        border-bottom: solid 1px #3f3f3f;
-    }
-
     #sidenav > ul > li:last-child {
         position: absolute;
         bottom: 0;
-        border-bottom: 0;
-        border-top: solid 1px #3f3f3f;
     }
 
     #sidenav > ul > li.active {
@@ -422,6 +480,12 @@
         text-align: center;
         cursor: pointer;
         position: relative;
+        border-bottom: solid 1px #3f3f3f;
+    }
+
+    #sidenav > ul > li:last-child span {
+        border-bottom: 0;
+        border-top: solid 1px #3f3f3f;
     }
 
     #sidenav > ul > li > span > span {
@@ -455,6 +519,18 @@
         height: 100%;
     }
 
+    #sidenav > ul > li > span#epgBtn {
+        display: none;
+    }
+
+    .vue-toast-manager_container {
+        z-index: 1000
+    }
+
+    .vue-toast_message {
+        padding: 10px 12px!important;
+    }
+
     /* Let's get this party started */
     ::-webkit-scrollbar {
         width: 6px;
@@ -479,5 +555,9 @@
     ::-webkit-scrollbar-thumb:window-inactive {
         background: #2a2a2a;
         /*background: rgba(255,0,0,0.4);*/
+    }
+
+    *:focus {
+        outline: #999;
     }
 </style>

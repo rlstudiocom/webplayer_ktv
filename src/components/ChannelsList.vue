@@ -31,7 +31,7 @@
 
                 if(!self.lastUpdated || (self.getNow() - self.lastUpdated) >= 60) { // время получение ответа, чтобы не повторять запрос
                     self.lastUpdated = self.getNow()
-                    jsonp(this.$parent.server + 'channel_list?sid=' + this.$parent.account.sid + '&icon=3', null, function (err, data) {
+                    jsonp(this.$parent.server + 'channel_list?icon=3', null, function (err, data) {
                         if (err) {
                             console.error(err.message);
                         }

@@ -20,7 +20,7 @@
             getDetail: function () {
                 var self = this
 
-                jsonp(this.$parent.$parent.server + 'messages?cmd=get&id=' + this.mes.id + '&sid=' + this.$parent.$parent.account.sid, null, function (err, data) {
+                jsonp(this.$parent.$parent.server + 'messages?cmd=get&id=' + this.mes.id, null, function (err, data) {
                     if (err)
                         console.error(err.message);
                     else {

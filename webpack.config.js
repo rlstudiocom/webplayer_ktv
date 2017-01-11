@@ -27,6 +27,14 @@ module.exports = {
                 }
             },
             {
+                test: /\.(woff|woff2|eot|ttf|svg)(\?.*$|$)/,
+                loader: 'url-loader?importLoaders=1&limit=100000'
+            },
+            {
+                test: /\.css$/,
+                loader: 'style-loader!css-loader'
+            },
+            {
                 test: /\.js$/,
                 loader: 'babel-loader',
                 exclude: /node_modules/

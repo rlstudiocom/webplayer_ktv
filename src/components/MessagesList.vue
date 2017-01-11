@@ -24,7 +24,7 @@
             getMessagesList: function () {
                 var self = this
 
-                jsonp(this.$parent.server + 'messages?cmd=list&sid=' + this.$parent.account.sid, null, function (err, data) {
+                jsonp(this.$parent.server + 'messages?cmd=list', null, function (err, data) {
                     if (err) {
                         console.error(err.message);
                     }
