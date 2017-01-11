@@ -93,9 +93,9 @@
                     </div>
                     <form action="" @submit.prevent="getLogon">
                         <label for="">Абонемент</label>
-                        <input type="text" v-model.number="login.login">
+                        <input id="user_login" type="text" v-model.number="login.login">
                         <label for="">Пароль</label>
-                        <input type="password" v-model.number="login.pass">
+                        <input id="user_pass" type="password" v-model.number="login.pass">
                         <button type="submit">Войти</button>
                     </form>
                     <a href="https://kartina.tv/shop" id="shop"><i class="fa fa-shopping-cart"></i> <span>Нет абонемента?</span></a>
