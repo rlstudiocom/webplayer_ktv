@@ -1,9 +1,9 @@
 <template lang="html">
-    <li @click="getDetail()">
+    <li @click="getDetail">
         <div class="type">{{ message.type }}</div>
         <div class="name">{{ message.title }}</div>
         <div class="date">{{ message.dt_create | datetime }}</div>
-        <div class="body" v-show="message.body">{{ message.body }}</div>
+        <div class="body">{{ message.body }}</div>
     </li>
 </template>
 <script>
@@ -11,23 +11,17 @@
 
     export default{
         props: ['message'],
-        data(){
-            return{
-
-            }
-        },
         methods: {
             getDetail: function () {
                 var self = this
-
-                jsonp(this.$parent.$parent.server + 'messages?cmd=get&id=' + this.mes.id, null, function (err, data) {
+                jsonp(self.$parent.$parent.server + 'messages?cmd=get&id=' + self.message.id, null, function (err, data) {
                     if (err)
                         console.error(err.message);
                     else {
                         if(data.error)
-                            self.$parent.$parent.hasError(data.error.code)
+                            self.$parent.$parent.hasError(data.error)
                         else
-                            self.message.body = data.message.body
+                            self.message.body = data.message.body // Todo: починить пустое значение, чтобы выводилось потом
                     }
                 })
             },

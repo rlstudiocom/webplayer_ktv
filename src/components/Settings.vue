@@ -42,7 +42,7 @@
         methods: {
             sendSettings: function (k) {
                 var self = this
-                jsonp(this.$parent.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
+                jsonp(self.$parent.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
                     if (err)
                         console.error(err.message);
                     else {

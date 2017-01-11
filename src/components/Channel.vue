@@ -26,7 +26,7 @@
                 return time.getHours() + ':' + ((time.getMinutes()<10) ? '0'+time.getMinutes() : time.getMinutes())
             },*/
             showVideo: function() {
-                console.log(this.channel.id)
+                this.$parent.$parent.$parent.getURL(this.channel.id)
             },
             calcProgress: function() {
                 var now = Math.trunc((new Date()).getTime() / 1000)

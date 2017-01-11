@@ -21,19 +21,15 @@
         methods: {
             getMessagesList: function () {
                 var self = this
-
-                jsonp(this.$parent.server + 'messages?cmd=list', null, function (err, data) {
+                jsonp(self.$parent.server + 'messages?cmd=list', null, function (err, data) {
                     if (err) {
-                        console.error(err.message);
+                        console.error(err.message)
                     }
                     else {
-                        if(data.error) {
-                            self.$parent.hasError(data.error.code)
-                        }
-                        else {
-                            self.messages = data.messages;
-//                            self.$parent.serverOffset = Math.floor(Date.now() - self.serverTime * 1000) // Todo: вычислять корректно сдвиг относительно сервера в часах
-                        }
+                        if(data.error)
+                            self.$parent.hasError(data.error)
+                        else
+                            self.messages = data.messages
                     }
                 })
             }

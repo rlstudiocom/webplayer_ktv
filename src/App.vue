@@ -44,7 +44,7 @@
             </div>
 
             <div id="player">
-                <!--VideoPlayer></VideoPlayer-->
+                <videoPlayer :options="videoOptions" ref="videoPlayer"></videoPlayer>
             </div>
 
         </div>
@@ -66,7 +66,7 @@
                     </div>
                     <form action="" @submit.prevent="getLogon">
                         <label for="">Абонемент</label>
-                        <input type="text" v-model.number="login.login">
+                        <input type="text" v-model.number="login.abo">
                         <label for="">Пароль</label>
                         <input type="password" v-model.number="login.pass">
                         <button type="submit">Войти</button>
@@ -86,11 +86,10 @@
 
 <script>
     import jsonp from 'jsonp'
-
+    import videoPlayer from 'vue-video-player'
     import 'vue-toast/dist/vue-toast.min.css'
     import vueToast from 'vue-toast'
 
-    import VideoPlayer from './components/VideoPlayer.vue'
     import ChannelsList from './components/ChannelsList.vue'
     import EpgList from './components/EpgList.vue'
     import MessagesList from './components/MessagesList.vue'
@@ -98,7 +97,7 @@
 
     export default {
         name: 'app',
-        components: { ChannelsList, EpgList, MessagesList, Settings, VideoPlayer, vueToast },
+        components: { ChannelsList, EpgList, MessagesList, Settings, videoPlayer, vueToast },
         data () {
             return {
                 server: 'https://iptv.kartina.tv/api/json/',
@@ -108,7 +107,7 @@
                     'big_icon_link': "http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png"
                 },
                 login: {
-                    login: '',
+                    abo: '',
                     pass: ''
                 },
                 account: {
@@ -150,7 +149,17 @@
                         t: 'Выбери свое качество',
                         d: 'Благодаря адаптивному вещанию, Вы сможете смотреть HD-каналы даже при низкой скорости Интернета'
                     },
-                ]
+                ],
+                videoOptions: {
+                    source: {
+                        type: "video/mp4",
+                        src: "http://vjs.zencdn.net/v/oceans.mp4"
+                    },
+                    techOrder: ["flash"],
+                    poster: "http://www.freemake.com/blog/wp-content/uploads/2015/06/videojs-logo.jpg",
+                    autoplay: false,
+                    customEventName: 'state'
+                }
             }
         },
         methods: {
@@ -186,7 +195,7 @@
             },
             getLogon: function () {
                 var self = this;
-                jsonp(this.server + 'login?login=' + this.login.login + '&pass=' + this.login.pass + '&soft_id=web-ktv-002&cli_serial=webplayer', null, function (err, data) {
+                jsonp(self.server + 'login?login=' + self.login.abo + '&pass=' + self.login.pass + '&soft_id=web-ktv-002&cli_serial=webplayer', null, function (err, data) {
                     if (err) {
                         console.error(err.message)
                     } else {
@@ -200,15 +209,31 @@
                 })
             },
             getLogout: function () {
-                var self = this;
-                jsonp(this.server + 'logout', null, function (err, data) {
+                var self = this
+                jsonp(self.server + 'logout', null, function (err, data) {
                     if (err) {
                         console.error(err.message);
                     } else {
                         if (data.error)
                             self.errorShow = true;
-                        else
+                        else {
+                            self.login.abo = ''
                             self.showToast('Вы вышли из аккаунта', 'info')
+                        }
+                    }
+                })
+            },
+            getURL: function (cid) {
+                var self = this
+                jsonp(self.server + 'get_url?cid=' + cid, null, function (err, data) {
+                    if (err) {
+                        console.error(err.message)
+                    } else {
+                        if (data.error)
+                            self.hasError(data.error)
+                        else {
+                            console.log(data.url)
+                        }
                     }
                 })
             },

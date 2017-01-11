@@ -28,17 +28,15 @@
             },
             getChannelsList: function () {
                 var self = this
-
                 if(!self.lastUpdated || (self.getNow() - self.lastUpdated) >= 60) { // время получение ответа, чтобы не повторять запрос
                     self.lastUpdated = self.getNow()
-                    jsonp(this.$parent.server + 'channel_list?icon=3', null, function (err, data) {
+                    jsonp(self.$parent.server + 'channel_list?icon=3', null, function (err, data) {
                         if (err) {
                             console.error(err.message);
                         }
                         else {
-                            if(data.error) {
-                                self.$parent.hasError(data.error.code)
-                            }
+                            if(data.error)
+                                self.$parent.hasError(data.error)
                             else {
                                 self.groups = data.groups;
                                 self.serverTime = data.servertime;
