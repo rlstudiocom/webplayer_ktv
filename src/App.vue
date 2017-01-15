@@ -1,5 +1,5 @@
 <template>
-    <div id="app">
+    <div>
 
         <div id="main" v-if="account.login">
 
@@ -44,7 +44,7 @@
             </div>
 
             <div id="player">
-                <videoPlayer :options="videoOptions" ref="videoPlayer"></videoPlayer>
+                <videoPlayer :videoOptions="videoOptions" ref="player"></videoPlayer>
             </div>
 
         </div>
@@ -86,7 +86,6 @@
 
 <script>
     import jsonp from 'jsonp'
-    import videoPlayer from 'vue-video-player'
     import 'vue-toast/dist/vue-toast.min.css'
     import vueToast from 'vue-toast'
 
@@ -94,6 +93,7 @@
     import EpgList from './components/EpgList.vue'
     import MessagesList from './components/MessagesList.vue'
     import Settings from './components/Settings.vue'
+    import videoPlayer from './components/VideoPlayer.vue'
 
     export default {
         name: 'app',
@@ -102,9 +102,9 @@
             return {
                 server: 'https://iptv.kartina.tv/api/json/',
                 channel: {
-                    'id': 2,
-                    'name': "Первый",
-                    'big_icon_link': "http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png"
+                    id: 2,
+                    name: 'Первый',
+                    big_icon_link: 'http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png'
                 },
                 login: {
                     abo: '',
@@ -152,18 +152,28 @@
                 ],
                 videoOptions: {
                     source: {
-                        type: "video/mp4",
-                        src: "http://vjs.zencdn.net/v/oceans.mp4"
+                        type: 'application/x-mpegURL',
+                        src: 'https://logos-channel.scaleengine.net/logos-channel/live/biblescreen-ad-free/playlist.m3u8',
+                        label: 'Первый',
+                        withCredentials: false
                     },
-                    techOrder: ["flash"],
-                    poster: "http://www.freemake.com/blog/wp-content/uploads/2015/06/videojs-logo.jpg",
+                    poster: 'http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png',
+                    live: true,
                     autoplay: false,
-                    customEventName: 'state'
+                    height: 500,
+                    language: 'ru'
+                    //controlBar: true
                 }
             }
         },
+        ready: function () {
+            window.addEventListener('resize', this.handleResize)
+        },
         methods: {
-            showTab: function(k) {
+            handleResize: function () {
+                this.videoOptions.height = window.innerHeight
+            },
+            showTab: function (k) {
                 if(!k)
                     this.sidemenuTab = !this.sidemenuTab ? this.lastTab : false
                 else
@@ -215,7 +225,7 @@
                         console.error(err.message);
                     } else {
                         if (data.error)
-                            self.errorShow = true;
+                            self.errorShow = true
                         else {
                             self.login.abo = ''
                             self.showToast('Вы вышли из аккаунта', 'info')
@@ -232,12 +242,13 @@
                         if (data.error)
                             self.hasError(data.error)
                         else {
-                            console.log(data.url)
+                            self.videoOptions.source.src = data.url
+                            self.videoOptions.autoplay = true
+                            self.showTab(false)
                         }
                     }
                 })
             },
-
             sendSettings: function (k) {
                 var self = this
                 jsonp(self.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
@@ -259,25 +270,24 @@
                 })
             },
             hasError: function (error) {
-
                 this.showToast(error.message, 'alert')
 
                 if (error.code == 12 || error.code == 11)
                     this.account.login = ''
             }
         },
-        computed: {
-            player() {
-                return this.$refs.videoPlayer.player
-            }
-        },
         mounted: function () {
             this.checkAccount()
 
-//            this.vueToasts.setOptions({
-//                maxToasts: 6,
-//                position: 'right bottom'
-//            })
+            this.videoOptions.height = window.innerHeight
+
+            if(this.account)
+                this.getURL(2)
+
+            this.$refs.toast.setOptions({
+                maxToasts: 6,
+                position: 'right bottom'
+            })
         }
     }
 
@@ -286,7 +296,7 @@
 <style>
     @import url('https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,900&subset=cyrillic');
 
-    html, body, #app {
+    html, body, body > div, #main, #player {
         width: 100%;
         height: 100%;
         background: #2a2a2a url(assets/43a9a631.png);

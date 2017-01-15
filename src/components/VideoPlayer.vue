@@ -2,36 +2,36 @@
     <videoPlayer :options="videoOptions" ref="videoPlayer"></videoPlayer>
 </template>
 <script>
-    import videoPlayer from 'vue-video-player'
+    import { videoPlayer } from 'vue-video-player'
 
     export default {
+        props: ['videoOptions'],
         components: { videoPlayer },
-        data() {
-            return {
-                videoOptions: {
-                    source: {
-                        type: "video/mp4",
-                        src: "http://vjs.zencdn.net/v/oceans.mp4"
-                    },
-                    techOrder: ["flash"],
-                    poster: "http://www.freemake.com/blog/wp-content/uploads/2015/06/videojs-logo.jpg",
-                    autoplay: false,
-                    customEventName: 'state'
-                }
-            }
-        },
         computed: {
             player() {
                 return this.$refs.videoPlayer.player
             }
         },
+        mounted: function () {
+            this.videoOptions.height = this.height
+        },
         methods: {
+            setHeight: function (height) {
+                this.videoOptions.height = height
+            },
+            setStream: function (url) {
+                //self.videoOptions.poster = self.channel.big_icon_link
+                this.videoOptions.source.src = url
+                //self.videoOptions.source.label = self.channel.name
+            }/*,
             playerStateChanged(playerCurrentState) {
                 console.log(playerCurrentState)
-            }
+            }*/
         }
     }
 </script>
 <style lang="css">
-
+    videoPlayer, .video-player {
+        height: 100%;
+    }
 </style>
