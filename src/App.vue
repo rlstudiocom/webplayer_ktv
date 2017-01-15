@@ -187,7 +187,7 @@
                             self.settings = data.settings
                             if(self.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
                                 self.settings.stream_standard.value = 'hls_h264'
-                                self.$refs.settings.sendSettings('stream_standard')
+                                self.sendSettings('stream_standard')
                             }
                         }
                     }
@@ -234,6 +234,20 @@
                         else {
                             console.log(data.url)
                         }
+                    }
+                })
+            },
+
+            sendSettings: function (k) {
+                var self = this
+                jsonp(self.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
+                    if (err)
+                        console.error(err.message);
+                    else {
+                        if(data.error)
+                            self.hasError(data.error)
+                        else
+                            self.showToast('Настройки обновлены (' + k + '=' + self.settings[k].value + ')', 'info')
                     }
                 })
             },

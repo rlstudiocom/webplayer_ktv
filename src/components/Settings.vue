@@ -41,17 +41,7 @@
         props: ['account', 'settings'],
         methods: {
             sendSettings: function (k) {
-                var self = this
-                jsonp(self.$parent.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
-                    if (err)
-                        console.error(err.message);
-                    else {
-                        if(data.error)
-                            self.$parent.hasError(data.error)
-                        else
-                            self.$parent.showToast('Настройки обновлены (' + k + '=' + self.settings[k].value + ')', 'info')
-                    }
-                })
+                this.$parent.sendSettings(k)
             }
         },
         filters: {
