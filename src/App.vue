@@ -138,13 +138,113 @@
                 var message = false
 
                 switch(this.error.code) {
-                    case 4:
+                    case 1: // Incorrect Request
+                        message = 'Неверные параметры запроса'
+                        break
+                    case 2: // Wrong login or password
                         message = 'Неверный логин или пароль'
                         break
-                    case 11:
-                    case 12:
+                    case 3: // Access Denied
                         this.account.login = ''
-                        message = 'Ошибка авторизации. Необходимо войти'
+                        message = 'Доступ запрещен. Повторите авторизацию через 10 минут'
+                        break
+                    case 4: // Login incorrect
+                        this.account.login = ''
+                        message = 'Ошибка авторизации'
+                        break
+                    case 5: // You contract is inactive
+                        this.account.login = ''
+                        message = 'Ваш абонемент недействителен. Закончился контракт'
+                        break
+                    case 6: // You contract is paused
+                        this.account.login = ''
+                        message = 'Ваш абонемент неактивен. Находится в режиме ожидания'
+                        break
+                    case 7: // Channel not found or not allowed
+                        message = 'Ошибка запроса. Данный контент недоступен'
+                        break
+                    case 8: // Error generate URL. Bad parameters
+                        message = 'Ошибка получения видеопотока. Повторите запрос'
+                        break
+                    case 9: // Need DAY parameter <DDMMYY>
+                        message = 'Необходимо выбрать дату'
+                        break
+                    case 10: // Need parameter <cid>
+                        message = 'Необходимо выбрать канал'
+                        break
+                    case 11: // Another client with you login was logged)
+                        this.account.login = ''
+                        message = 'Другой клиент вошел под Вашим абонементом. Повторите авторизацию'
+                        break
+                    case 12: // Authentification error
+                        this.account.login = ''
+                        message = 'Ошибка запроса. Необходимо авторизоваться'
+                        break
+                    case 13: // You Subscription has expired
+                        message = 'Ваш абонемент неактивен. Закончился контракт'
+                        break
+                    case 14: // Unknown API function
+                        message = 'Ошибка запроса. Неверный вызов команды'
+                        break
+                    case 15: // Archive is not available
+                        message = 'Архив недоступен'
+                        break
+                    case 16: // Need place to set
+                        message = ''
+                        break
+                    case 17: // Need name of settings variable
+                        message = ''
+                        break
+                    case 18: // Incorrect confirmation code
+                        message = ''
+                        break
+                    case 19: // Current code wrong
+                        message = ''
+                        break
+                    case 20: // New code wrong
+                        message = ''
+                        break
+                    case 21: // Need value (val) parameter
+                        message = ''
+                        break
+                    case 22: // This value is not allowed
+                        message = ''
+                        break
+                    case 23: // Need parameter
+                    case 24: // Need parameter <id>
+                    case 25: // Need parameter <fileid>
+                    case 26: // Need parameter <type>
+                    case 27: // Need parameter <query>
+                        message = 'Ошибка параметров. Повторите запрос'
+                        break
+                    case 30: // Service is not available
+                        this.account.login = ''
+                        message = 'Сервис временно недоступен'
+                        break
+                    case 31: // Query limit exceeded
+                        message = ''
+                        break
+                    case 32: // Rule already exist
+                        message = 'Правило существует'
+                        break
+                    case 33: // Need param ?cmd = hide_channel | show_channel | get_list
+                        message = ''
+                        break
+                    case 34: // Need param ?cmd = get_user_rates | set_user_rates
+                        message = ''
+                        break
+                    case 35: // Bad rate value. Allow <show|hide|pass>
+                        message = ''
+                        break
+                    case 36: // Cannt find film
+                        message = 'Невозможно найти фильм'
+                        break
+                    case 37: // This film already added to favorite list
+                        message = 'Фильм уже добавлен в избранное'
+                        break
+                    case 99: // System error
+                        this.account.login = ''
+                        message = 'Системная ошибка. Обратитесь в техподдержку'
                         break
                     default:
                         message = this.error.message
