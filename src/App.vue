@@ -51,19 +51,8 @@
 
         <div id="login" v-else>
             <div>
-                <h1>Вы смотрите <img src="src/assets/logo-kartina.png" alt="Kartina.TV"> Kartina.TV</h1>
-                <div class="col-1-2">
-                    <ul>
-                        <li v-for="value in promo" v-bind:style="'background-image: url(src/assets/' + value.i + ')'">
-                            <h4>{{value.t}}</h4>
-                            <p>{{value.d}}</p>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-1-2">
-                    <div class="error" v-show="errorShow" @click="errorToggle">
-                        Не удалось пройти авторизацию
-                    </div>
+                <h1><img src="src/assets/logo-kartina.png" alt="Kartina.TV"> Kartina.TV</h1>
+                <div>
                     <form action="" @submit.prevent="getLogon">
                         <label for="">Абонемент</label>
                         <input type="text" v-model.number="login.abo">
@@ -71,7 +60,7 @@
                         <input type="password" v-model.number="login.pass">
                         <button type="submit">Войти</button>
                     </form>
-                    <a href="https://kartina.tv/shop" id="shop"><i class="fa fa-shopping-cart"></i> <span>Нет абонемента?</span></a>
+                    <a href="https://kartina.tv/shop" id="shop"><i class="fa fa-shopping-cart"></i> Нет абонемента?</a>
                 </div>
                 <br class="clear">
                 <h2>Круглосуточная техподдержка</h2>
@@ -101,6 +90,8 @@
         data () {
             return {
                 server: 'https://iptv.kartina.tv/api/json/',
+                error: false,
+                info: false,
                 channel: {
                     id: 2,
                     name: 'Первый',
@@ -113,43 +104,19 @@
                 account: {
                     login: '',
                     packet_name: '',
-                    packet_expire: ''
-                },
-                settings: {
-                    stream_server: { value: '', list: [] },
-                    timeshift: { value: '', list: [] },
-                    http_caching: { value: '', list: [] },
-                    stream_standard: { value: 'hls_h264' }
+                    packet_expire: '',
+                    settings: {
+                        stream_server: { value: '', list: [] },
+                        timeshift: { value: '', list: [] },
+                        http_caching: { value: '', list: [] },
+                        stream_standard: { value: 'hls_h264' }
+                    }
                 },
                 errorShow: false,
                 serverOffeset: 0,
                 sidemenuTab: false,
                 lastTab: false,
                 newMessages: 0,
-                toastSettings: {
-                    maxToasts: 6,
-                    position: 'bottom right',
-                    theme: 'error',
-                    timeLife: 3000,
-                    closeBtn: false
-                },
-                promo: [
-                    {
-                        i: 'icon-world.png',
-                        t: 'Просмотр в любой точке мира',
-                        d: 'Теперь можно смотреть любимые каналы в любой точке мира без использования громоздкого оборудования'
-                    },
-                    {
-                        i: 'icon-archive.png',
-                        t: 'Телевидение в записи',
-                        d: 'У нас можно просматривать пропущенные программы в течение двух недель после выхода передачи в эфир'
-                    },
-                    {
-                        i: 'icon-hd.png',
-                        t: 'Выбери свое качество',
-                        d: 'Благодаря адаптивному вещанию, Вы сможете смотреть HD-каналы даже при низкой скорости Интернета'
-                    },
-                ],
                 videoOptions: {
                     source: {
                         type: 'application/x-mpegURL',
@@ -166,6 +133,30 @@
                 }
             }
         },
+        watch: {
+            error: function () {
+                var message = false
+
+                switch(this.error.code) {
+                    case 4:
+                        message = 'Неверный логин или пароль'
+                        break
+                    case 11:
+                    case 12:
+                        this.account.login = ''
+                        message = 'Ошибка авторизации. Необходимо войти'
+                        break
+                    default:
+                        message = this.error.message
+                }
+
+                this.showToast(message, 'error')
+
+            },
+            info: function () {
+                this.showToast(this.info, 'info')
+            }
+        },
         ready: function () {
             window.addEventListener('resize', this.handleResize)
         },
@@ -174,13 +165,12 @@
                 this.videoOptions.height = window.innerHeight
             },
             showTab: function (k) {
-                if(!k)
+                if (!k) {
                     this.sidemenuTab = !this.sidemenuTab ? this.lastTab : false
-                else
+                }
+                else {
                     this.sidemenuTab = this.lastTab = k
-            },
-            errorToggle: function () {
-                this.errorShow = !this.errorShow
+                }
             },
             checkAccount: function () {
                 var self = this
@@ -189,14 +179,14 @@
                     if (err) {
                         console.error(err.message)
                     } else {
-                        if (data.error)
-                            self.hasError(data.error)
+                        if (data.error) {
+                            self.error = data.error
+                        }
                         else {
-                            self.showToast('Сессия обновлена', 'info')
-                            self.account = data.account
-                            self.settings = data.settings
-                            if(self.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
-                                self.settings.stream_standard.value = 'hls_h264'
+                            self.error = 'Сессия обновлена'
+                            self.account = data
+                            if(self.account.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
+                                self.account.settings.stream_standard.value = 'hls_h264'
                                 self.sendSettings('stream_standard')
                             }
                         }
@@ -204,15 +194,17 @@
                 })
             },
             getLogon: function () {
-                var self = this;
+                var self = this
                 jsonp(self.server + 'login?login=' + self.login.abo + '&pass=' + self.login.pass + '&soft_id=web-ktv-002&cli_serial=webplayer', null, function (err, data) {
                     if (err) {
                         console.error(err.message)
                     } else {
-                        if (data.error)
-                            self.errorShow = true
-                        else
+                        if (data.error) {
+                            self.error = data.error
+                        }
+                        else {
                             self.checkAccount()
+                        }
 
                          self.login.pass = ''
                     }
@@ -224,11 +216,12 @@
                     if (err) {
                         console.error(err.message);
                     } else {
-                        if (data.error)
-                            self.errorShow = true
+                        if (data.error) {
+                            self.error = data.error
+                        }
                         else {
                             self.login.abo = ''
-                            self.showToast('Вы вышли из аккаунта', 'info')
+                            self.info = 'Вы вышли из аккаунта'
                         }
                     }
                 })
@@ -239,12 +232,14 @@
                     if (err) {
                         console.error(err.message)
                     } else {
-                        if (data.error)
-                            self.hasError(data.error)
+                        if (data.error) {
+                            self.error = data.error
+                        }
                         else {
-                            self.videoOptions.source.src = data.url
-                            self.videoOptions.autoplay = true
-                            self.showTab(false)
+                            console.log(data.url)
+//                            self.videoOptions.source.src = data.url
+//                            self.videoOptions.autoplay = true
+//                            self.showTab(false)
                         }
                     }
                 })
@@ -255,10 +250,12 @@
                     if (err)
                         console.error(err.message);
                     else {
-                        if(data.error)
-                            self.hasError(data.error)
-                        else
-                            self.showToast('Настройки обновлены (' + k + '=' + self.settings[k].value + ')', 'info')
+                        if (data.error) {
+                            self.error = data.error
+                        }
+                        else {
+                            self.info = 'Настройки обновлены (' + k + '=' + self.settings[k].value + ')'
+                        }
                     }
                 })
             },
@@ -281,7 +278,7 @@
 
             this.videoOptions.height = window.innerHeight
 
-            if(this.account)
+            if(this.account.account)
                 this.getURL(2)
 
             this.$refs.toast.setOptions({
@@ -317,6 +314,9 @@
         font-weight: 300;
     }
 
+
+
+
     #login ul, #login li, #sidenav ul, #sidenav li {
         margin: 0;
         padding: 0;
@@ -325,11 +325,11 @@
     }
 
     #login > div {
-        width: 920px;
+        width: 480px;
         height: 560px;
         position: absolute;
         left: 50%;
-        margin-left: -460px;
+        margin-left: -240px;
         top: 50%;
         margin-top: -280px;
         font-weight: 300;
@@ -344,7 +344,7 @@
     }
 
     #login h1 img {
-        margin: 32px 20px -32px;
+        margin: 32px 10px -32px;
     }
 
     #login h2 {
@@ -369,55 +369,6 @@
 
     #login a:hover {
         color: #f98d0b;
-    }
-
-    #login .col-1-2 {
-        width: 50%;
-        float: left;
-    }
-
-    #login li {
-        overflow: hidden;
-        height: 120px;
-        padding: 0 10px 0 120px;
-        background: transparent no-repeat 0 50%;
-        background-size: 100px;
-        border-top: solid 1px #444;
-        border-bottom: solid 1px #333;
-    }
-
-    #login li:first-child {
-        border-top: 0;
-    }
-
-    #login li:last-child {
-        border-bottom: 0;
-    }
-
-    #login h4 {
-        /*color: #f98d0b;*/
-        margin: 6px 0 0;
-        line-height: 36px;
-        font-size: 19px;
-        text-transform: uppercase;
-        font-weight: 300;
-    }
-
-    #login p {
-        margin: 0;
-        line-height: 21px;
-        font-size: 14px;
-        color: #dedede;
-    }
-
-    #login .error {
-        padding: 4px 0 6px;
-        border-radius: 6px;
-        background: #980000;
-        margin: 0 40px;
-        border: solid 1px rgba(255, 255, 255, .15);
-        border-bottom: solid 1px rgba(0, 0, 0, .15);
-        text-align: center;
     }
 
     #login form {
@@ -474,16 +425,12 @@
         text-align: center;
     }
 
-    /*#shop span {
-      border-bottom: underline;
-    }*/
     #shop:hover {
         color: #f98d0b;
     }
 
-    #shop:hover span {
-        text-decoration: none;
-    }
+
+
 
     #sidenav {
         height: 100%;
