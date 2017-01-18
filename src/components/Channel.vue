@@ -1,22 +1,25 @@
 <template lang="html">
-    <li :style="{ 'background-image': 'url(' + channel.big_icon_link + ')' }" @click="showVideo()">
-        <div class="archive" v-show="channel.have_archive" title="Есть архив"><i class="fa fa-circle"></i></div>
-        <div class="name">{{ channel.name }}</div>
-        <div class="programm" v-bind:title="channel.epg_progname">{{ channel.epg_progname }}</div>
-        <div class="time" v-show="channel.epg_start">
-            <div class="start">{{ channel.epg_start | time }}</div>
-            <div class="progress">
-                <div :style="{ 'width' : progress + '%' }"></div>
+    <div class="channel">
+        <div :style="{ 'background-image': 'url(' + channel.big_icon_link + ')' }" @click="showVideo">
+            <div class="archive" v-show="channel.have_archive" title="Есть архив"><i class="fa fa-circle"></i></div>
+            <div class="name">{{ channel.name }}</div>
+            <div class="programm" v-bind:title="channel.epg_progname">{{ channel.epg_progname }}</div>
+            <div class="time" v-show="channel.epg_start">
+                <div class="start">{{ channel.epg_start | time }}</div>
+                <div class="progress">
+                    <div :style="{ 'width' : progress + '%' }"></div>
+                </div>
+                <div class="end">{{ channel.epg_end | time }}</div>
             </div>
-            <div class="end">{{ channel.epg_end | time }}</div>
         </div>
-    </li>
+    </div>
 </template>
 <script>
     export default{
         props: ['channel', 'serverOffset'],
         data(){
             return{
+                app: this.$parent.$parent,
                 progress: 0
             }
         },
@@ -26,13 +29,14 @@
                 return time.getHours() + ':' + ((time.getMinutes()<10) ? '0'+time.getMinutes() : time.getMinutes())
             },*/
             showVideo: function() {
-                this.$parent.$parent.$parent.getURL(this.channel.id)
+                this.$parent.$parent.tab.current = false
+                this.app.channel = this.channel
             },
             calcProgress: function() {
                 var now = Math.trunc((new Date()).getTime() / 1000)
                 this.progress = Math.trunc((now - this.channel.epg_start) / (this.channel.epg_end - this.channel.epg_start) * 100)
-                if(this.progress >= 100)
-                    this.$parent.$parent.getChannelsList()
+//                if(this.progress >= 100)
+//                    this.$parent.$parent.apiGetChannelsList()
             }
         },
         filters: {
@@ -46,56 +50,56 @@
             this.calcProgress()
             window.setInterval(() => {
                 this.calcProgress()
-                    //this.$parent.$parent.getChannelsList()
-            }, 5000);
+            }, 5000)
         }
     }
 </script>
 <style lang="css">
-    #channels .group > ul > li {
+    .channel > div {
         position: relative;
-        background: transparent no-repeat 2px 50%;
-        background-size: 48px;
-        padding: 2px 2px 2px 54px;
+        background: transparent no-repeat 14px 50%;
+        background-size: 80px;
+        padding: 10px 10px 10px 110px;
         border-bottom: solid 1px rgba(255,255,255,.1);
-        height: 60px;
+        border-right: solid 1px rgba(255,255,255,.1);
+        height: 100px;
         /*transition: height 2s ease;*/
     }
-    #channels .group > ul > li:hover{
-        background-color: rgba(0,0,0,.2);
+    #channels .channel:hover {
+        background-color: rgba(0,0,0,.75);
         /*height: auto;*/
     }
-    #channels .group > ul > li .name {
-        font-size: 14px;
-        font-weight: bold;
+    .channel .name {
+        font-size: 21px;
     }
-    #channels .group > ul > li .archive {
+    .channel .archive {
         position: absolute;
         top: 2px;
         left: 4px;
         font-size: 12px;
         color: #00b200;
     }
-    #channels .group > ul > li .programm {
+    .channel .programm {
         color: #dedede;
         font-size: 12px;
-        line-height: 13px;
-        min-height: 26px;
-        height: 26px;
+        line-height: 14px;
+        min-height: 42px;
+        height: 42px;
         overflow: hidden;
+        margin: 0 0 8px;
         /*transition: height 2s ease;*/
     }
-    #channels .group > ul > li .programm:hover {
+    .channel .programm:hover {
         /*height: auto;*/
     }
-    #channels .group > ul > li .time {
+    .channel .time {
         font-size: 10px;
         line-height: 10px;
         height: 17px;
         overflow: hidden;
         position: relative;
     }
-    #channels .group > ul > li .time .start, #channels .group > ul > li .time .end {
+    .channel .time .start, .channel .time .end {
         width: 40px;
         float: left;
         position: absolute;
@@ -103,19 +107,19 @@
         left: 2px;
         color: #eeac32;
     }
-    #channels .group > ul > li .time .end {
+    .channel .time .end {
         left: auto;
         right: 2px;
         text-align: right;
     }
-    #channels .group > ul > li .time .progress {
+    .channel .time .progress {
         margin: 5px 40px 0;
         background: #555;
         height: 6px;
         border-radius: 2px;
         overflow: hidden;
     }
-    #channels .group > ul > li .time .progress > div {
+    .channel .time .progress > div {
         width: 50%;
         height: 6px;
         border-radius: 2px;

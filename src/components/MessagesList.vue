@@ -34,7 +34,7 @@
                 })
             }
         },
-        created: function () {
+        mounted: function () {
             this.getMessagesList()
         }
     }

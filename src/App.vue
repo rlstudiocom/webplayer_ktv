@@ -1,50 +1,17 @@
 <template>
     <div>
 
-        <div id="main" v-if="account.login">
+        <div id="main" v-if="account.account.login">
 
-            <div id="sidenav">
+            <ChannelList :channelList="channelList" :tab="tab" v-show="tab.current == 'channels'"></ChannelList>
 
-                <ul role="tablist">
-                    <li @click="showTab(false)">
-                        <span title="Показать боковое меню"><i class="fa fa-bars"></i></span>
-                    </li>
-                    <li @click="showTab('channels')">
-                        <span title="Каналы" class="active"><i class="fa fa-th-list"></i></span>
-                        <div id="channelsPanel" v-show="sidemenuTab == 'channels'">
-                            <ChannelsList></ChannelsList>
-                        </div>
-                    </li>
-                    <li style="display:none">
-                        <span title="Видеотека"><i class="fa fa-film"></i></span>
-                    </li>
-                    <li @click="showTab('messages')">
-                        <span><i class="fa fa-envelope"></i> <span v-show="newMessages">{{ newMessages }}</span></span>
-                        <div id="messagesPanel" v-show="sidemenuTab == 'messages'">
-                            <MessagesList></MessagesList>
-                        </div>
-                    </li>
-                    <li @click="showTab('settings')">
-                        <span><i class="fa fa-cog"></i></span>
-                        <div id="settingsPanel" v-show="sidemenuTab == 'settings'">
-                            <Settings :account="account" :settings="settings" ref="settings"></Settings>
-                        </div>
-                    </li>
-                    <li>
-                        <span id="epgBtn"></span>
-                        <div id="epgPanel" v-show="sidemenuTab == 'epg'">
-                            <EpgList :channel="channel"></EpgList>
-                        </div>
-                    </li>
-                    <li>
-                        <span title="Выход" @click.prevent="getLogout"><i class="fa fa-sign-out"></i></span>
-                    </li>
-                </ul>
+            <MessagesList v-show="tab.current == 'messages'"></MessagesList>
 
-            </div>
+            <Settings :account="account" ref="settings" v-show="tab.current == 'settings'"></Settings>
 
             <div id="player">
-                <videoPlayer :videoOptions="videoOptions" ref="player"></videoPlayer>
+                <VideoPlayer :videoOptions="videoOptions" ref="player"></VideoPlayer>
+                <VideoControl :channel="channel" :tab="tab" :newMessages="newMessages"></VideoControl>
             </div>
 
         </div>
@@ -53,7 +20,7 @@
             <div>
                 <h1><img src="src/assets/logo-kartina.png" alt="Kartina.TV"> Kartina.TV</h1>
                 <div>
-                    <form action="" @submit.prevent="getLogon">
+                    <form action="" @submit.prevent="getLogin">
                         <label for="">Абонемент</label>
                         <input type="text" v-model.number="login.abo">
                         <label for="">Пароль</label>
@@ -75,23 +42,26 @@
 
 <script>
     import jsonp from 'jsonp'
+    //import kartina from './kartina'
     import 'vue-toast/dist/vue-toast.min.css'
     import vueToast from 'vue-toast'
 
-    import ChannelsList from './components/ChannelsList.vue'
-    import EpgList from './components/EpgList.vue'
+    import ChannelList from './components/ChannelList.vue'
+    import VideoControl from './components/VideoControl.vue'
     import MessagesList from './components/MessagesList.vue'
     import Settings from './components/Settings.vue'
-    import videoPlayer from './components/VideoPlayer.vue'
+    import VideoPlayer from './components/VideoPlayer.vue'
 
     export default {
         name: 'app',
-        components: { ChannelsList, EpgList, MessagesList, Settings, videoPlayer, vueToast },
+        components: { ChannelList, MessagesList, Settings, VideoPlayer, VideoControl, vueToast },
         data () {
             return {
                 server: 'https://iptv.kartina.tv/api/json/',
                 error: false,
                 info: false,
+                lastUpdated: 0, // время последнего запроса списка каналов
+                channelList: [],
                 channel: {
                     id: 2,
                     name: 'Первый',
@@ -102,9 +72,11 @@
                     pass: ''
                 },
                 account: {
-                    login: '',
-                    packet_name: '',
-                    packet_expire: '',
+                    account: {
+                        login: false,
+                        packet_name: false,
+                        packet_expire: false
+                    },
                     settings: {
                         stream_server: { value: '', list: [] },
                         timeshift: { value: '', list: [] },
@@ -112,10 +84,12 @@
                         stream_standard: { value: 'hls_h264' }
                     }
                 },
-                errorShow: false,
+                stream_url: false,
                 serverOffeset: 0,
-                sidemenuTab: false,
-                lastTab: false,
+                tab: {
+                    current: false,
+                    last: false
+                },
                 newMessages: 0,
                 videoOptions: {
                     source: {
@@ -126,7 +100,7 @@
                     },
                     poster: 'http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png',
                     live: true,
-                    autoplay: false,
+                    autoplay: true,
                     height: 500,
                     language: 'ru'
                     //controlBar: true
@@ -136,7 +110,6 @@
         watch: {
             error: function () {
                 var message = false
-
                 switch(this.error.code) {
                     case 1: // Incorrect Request
                         message = 'Неверные параметры запроса'
@@ -178,7 +151,7 @@
                         break
                     case 12: // Authentification error
                         this.account.login = ''
-                        message = 'Ошибка запроса. Необходимо авторизоваться'
+                        message = 'Необходимо авторизоваться'
                         break
                     case 13: // You Subscription has expired
                         message = 'Ваш абонемент неактивен. Закончился контракт'
@@ -255,45 +228,37 @@
             },
             info: function () {
                 this.showToast(this.info, 'info')
+            },
+            channel: function () {
+                this.apiGetUrl(this.channel.id)
+            },
+            stream_url: function () {
+                this.videoOptions.poster = this.channel.big_icon_link
+                this.videoOptions.source.src = this.stream_url
+                this.videoOptions.autoplay = true
+            },
+            account: function() {
+                if(this.account.account.login) {
+                    this.apiGetChannelList()
+                    this.apiGetUrl(this.channel.id)
+                }
             }
         },
         ready: function () {
             window.addEventListener('resize', this.handleResize)
         },
+        created: function () {
+            this.checkAccount()
+            this.videoOptions.height = window.innerHeight
+        },
+        mounted: function () {
+            this.$refs.toast.setOptions({
+                maxToasts: 6,
+                position: 'right bottom'
+            })
+        },
         methods: {
-            handleResize: function () {
-                this.videoOptions.height = window.innerHeight
-            },
-            showTab: function (k) {
-                if (!k) {
-                    this.sidemenuTab = !this.sidemenuTab ? this.lastTab : false
-                }
-                else {
-                    this.sidemenuTab = this.lastTab = k
-                }
-            },
-            checkAccount: function () {
-                var self = this
-                self.sidemenuTab = self.lastTab = 'channels'
-                jsonp(self.server + 'account?settings=1', null, function (err, data) {
-                    if (err) {
-                        console.error(err.message)
-                    } else {
-                        if (data.error) {
-                            self.error = data.error
-                        }
-                        else {
-                            self.error = 'Сессия обновлена'
-                            self.account = data
-                            if(self.account.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
-                                self.account.settings.stream_standard.value = 'hls_h264'
-                                self.sendSettings('stream_standard')
-                            }
-                        }
-                    }
-                })
-            },
-            getLogon: function () {
+            apiGetLogon: function () {
                 var self = this
                 jsonp(self.server + 'login?login=' + self.login.abo + '&pass=' + self.login.pass + '&soft_id=web-ktv-002&cli_serial=webplayer', null, function (err, data) {
                     if (err) {
@@ -303,18 +268,18 @@
                             self.error = data.error
                         }
                         else {
-                            self.checkAccount()
+                            self.apiGetAccount()
                         }
 
-                         self.login.pass = ''
+                        self.login.pass = ''
                     }
                 })
             },
-            getLogout: function () {
+            apiGetLogout: function () {
                 var self = this
                 jsonp(self.server + 'logout', null, function (err, data) {
                     if (err) {
-                        console.error(err.message);
+                        console.error(err.message)
                     } else {
                         if (data.error) {
                             self.error = data.error
@@ -326,7 +291,28 @@
                     }
                 })
             },
-            getURL: function (cid) {
+            apiGetChannelList: function () {
+                var self = this
+                if(!self.lastUpdated || (self.getNow() - self.lastUpdated) >= 60) { // время получение ответа, чтобы не повторять запрос
+                    self.lastUpdated = self.getNow()
+                    jsonp(self.server + 'channel_list?icon=3', null, function (err, data) {
+                        if (err) {
+                            console.error(err.message)
+                        } else {
+                            if (data.error) {
+                                self.error = data.error
+                            } else {
+                                self.channelList = data.groups
+//                                self.serverTime = data.servertime
+                                self.newMessages = data.messages
+//                                self.$parent.serverOffset = Math.floor(Date.now() - self.serverTime * 1000) // Todo: вычислять корректно сдвиг относительно сервера в часах
+                                //console.log(self.serverOffset)
+                            }
+                        }
+                    })
+                }
+            },
+            apiGetUrl: function (cid) {
                 var self = this
                 jsonp(self.server + 'get_url?cid=' + cid, null, function (err, data) {
                     if (err) {
@@ -336,15 +322,33 @@
                             self.error = data.error
                         }
                         else {
-                            console.log(data.url)
-//                            self.videoOptions.source.src = data.url
-//                            self.videoOptions.autoplay = true
-//                            self.showTab(false)
+                            self.stream_url = data.url
                         }
                     }
                 })
             },
-            sendSettings: function (k) {
+            apiGetAccount: function () {
+                var self = this
+                self.sidemenuTab = self.lastTab = 'channels'
+                jsonp(self.server + 'account?settings=1', null, function (err, data) {
+                    if (err) {
+                        console.error(err.message)
+                    } else {
+                        if (data.error) {
+                            self.error = data.error
+                        }
+                        else {
+                            self.info = 'Сессия обновлена'
+                            self.account = data
+                            if(self.account.settings.stream_standard.value != 'hls_h264') { // Todo: пока принимаем только стандарт HLS
+                                self.account.settings.stream_standard.value = 'hls_h264'
+                                self.apiSendSettings('stream_standard')
+                            }
+                        }
+                    }
+                })
+            },
+            apiSendSettings: function (k) {
                 var self = this
                 jsonp(self.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
                     if (err)
@@ -359,6 +363,35 @@
                     }
                 })
             },
+            handleResize: function () {
+                this.videoOptions.height = window.innerHeight
+            },
+            getLogin: function () {
+                this.apiGetLogon()
+
+                if(this.account.account.login) {
+                    this.apiGetChannelList()
+                    this.apiGetUrl(2)
+                }
+            },
+            checkAccount: function () {
+                this.apiGetAccount()
+            },
+            getLogout: function () {
+                this.account.account.login = false
+                this.apiGetLogout()
+            },
+            showTab: function (k) {
+                if (!k) {
+                    this.tab.current = !this.tab.current ? this.tab.last : false
+                }
+                else {
+                    this.tab.current = this.tab.last = k
+                }
+            },
+            hideTab: function (k) {
+                this.tab.current = false
+            },
             showToast: function (message, theme) {
                 this.$refs.toast.showToast(message, {
                     theme: theme,
@@ -366,25 +399,9 @@
                     closeBtn: false
                 })
             },
-            hasError: function (error) {
-                this.showToast(error.message, 'alert')
-
-                if (error.code == 12 || error.code == 11)
-                    this.account.login = ''
+            getNow: function () {
+                return Math.trunc((new Date()).getTime() / 1000)
             }
-        },
-        mounted: function () {
-            this.checkAccount()
-
-            this.videoOptions.height = window.innerHeight
-
-            if(this.account.account)
-                this.getURL(2)
-
-            this.$refs.toast.setOptions({
-                maxToasts: 6,
-                position: 'right bottom'
-            })
         }
     }
 
@@ -393,7 +410,7 @@
 <style>
     @import url('https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,900&subset=cyrillic');
 
-    html, body, body > div, #main, #player {
+    html, body, #main, #player {
         width: 100%;
         height: 100%;
         background: #2a2a2a url(assets/43a9a631.png);
@@ -417,7 +434,7 @@
 
 
 
-    #login ul, #login li, #sidenav ul, #sidenav li {
+    #login ul, #login li {
         margin: 0;
         padding: 0;
         list-style: none;
@@ -438,9 +455,9 @@
 
     #login h1 {
         text-align: center;
-        line-height: 42px;
+        line-height: 56px;
         margin: -32px 0 48px;
-        font-size: 42px;
+        font-size: 56px;
     }
 
     #login h1 img {
@@ -528,9 +545,6 @@
     #shop:hover {
         color: #f98d0b;
     }
-
-
-
 
     #sidenav {
         height: 100%;
