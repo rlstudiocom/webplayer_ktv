@@ -5,11 +5,13 @@
 
             <ChannelList :channelList="channelList" :tab="tab" v-show="tab.current == 'channels'"></ChannelList>
 
-            <MessagesList v-show="tab.current == 'messages'"></MessagesList>
+            <MessagesList :tab="tab" v-show="tab.current == 'messages'"></MessagesList>
 
-            <Settings :account="account" ref="settings" v-show="tab.current == 'settings'"></Settings>
+            <Settings :account="account" :tab="tab" ref="settings" v-show="tab.current == 'settings'"></Settings>
 
-            <div id="player">
+            <video id="video"></video>
+
+            <div id="player" style="display: none">
                 <VideoPlayer :videoOptions="videoOptions" ref="player"></VideoPlayer>
                 <VideoControl :channel="channel" :tab="tab" :newMessages="newMessages"></VideoControl>
             </div>
@@ -42,7 +44,7 @@
 
 <script>
     import jsonp from 'jsonp'
-    //import kartina from './kartina'
+    import Hls from 'hls.js'
     import 'vue-toast/dist/vue-toast.min.css'
     import vueToast from 'vue-toast'
 
@@ -60,6 +62,7 @@
                 server: 'https://iptv.kartina.tv/api/json/',
                 error: false,
                 info: false,
+                player: false,
                 lastUpdated: 0, // время последнего запроса списка каналов
                 channelList: [],
                 channel: {
@@ -100,7 +103,7 @@
                     },
                     poster: 'http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png',
                     live: true,
-                    autoplay: true,
+                    autoplay: false,
                     height: 500,
                     language: 'ru'
                     //controlBar: true
@@ -240,15 +243,26 @@
             account: function() {
                 if(this.account.account.login) {
                     this.apiGetChannelList()
-                    this.apiGetUrl(this.channel.id)
+                    //this.apiGetUrl(this.channel.id)
                 }
             }
         },
         ready: function () {
-            window.addEventListener('resize', this.handleResize)
+            //window.addEventListener('resize', this.handleResize)
         },
         created: function () {
             this.checkAccount()
+
+            if(Hls.isSupported()) {
+                var video = document.getElementById('video')
+                var hls = new Hls()
+                hls.loadSource('http://www.streambox.fr/playlists/test_001/stream.m3u8')
+                hls.attachMedia(video)
+                hls.on(Hls.Events.MANIFEST_PARSED,function() {
+                    video.play()
+                })
+            }
+
             this.videoOptions.height = window.innerHeight
         },
         mounted: function () {
@@ -350,7 +364,7 @@
             },
             apiSendSettings: function (k) {
                 var self = this
-                jsonp(self.server + 'settings_set?var=' + k + '&val=' + self.settings[k].value, null, function (err, data) {
+                jsonp(self.server + 'settings_set?var=' + k + '&val=' + self.account.settings[k].value, null, function (err, data) {
                     if (err)
                         console.error(err.message);
                     else {
@@ -358,7 +372,7 @@
                             self.error = data.error
                         }
                         else {
-                            self.info = 'Настройки обновлены (' + k + '=' + self.settings[k].value + ')'
+                            self.info = 'Настройки обновлены (' + k + '=' + self.account.settings[k].value + ')'
                         }
                     }
                 })
