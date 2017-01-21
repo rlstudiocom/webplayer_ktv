@@ -19,7 +19,6 @@
         props: ['channel', 'serverOffset'],
         data(){
             return{
-                app: this.$parent.$parent,
                 progress: 0
             }
         },
@@ -30,13 +29,13 @@
             },*/
             showVideo: function() {
                 this.$parent.$parent.tab.current = false
-                this.app.channel = this.channel
+                this.$parent.$parent.channel = this.channel
             },
             calcProgress: function() {
                 var now = Math.trunc((new Date()).getTime() / 1000)
                 this.progress = Math.trunc((now - this.channel.epg_start) / (this.channel.epg_end - this.channel.epg_start) * 100)
-//                if(this.progress >= 100)
-//                    this.$parent.$parent.apiGetChannelsList()
+                if(this.progress >= 100)
+                    this.$parent.$parent.apiGetChannelList()
             }
         },
         filters: {
