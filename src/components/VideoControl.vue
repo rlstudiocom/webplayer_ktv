@@ -22,7 +22,7 @@
                     <a href="#" @click.prevent="volUp"><i class="icon-volume-2"></i></a>
                     <a href="#" @click.prevent="stop"><i class="icon-control-pause"></i></a>
                     <a href="#" @click.prevent="play"><i class="icon-control-play"></i></a>
-                    <a href="#" @click.prevent="fullScreen"><i class="icon-fullsize"></i></a>
+                    <a href="#" @click.prevent="fullScreen"><i class="icon-size-fullscreen"></i></a>
                 </div>
             </div>
         </div>
