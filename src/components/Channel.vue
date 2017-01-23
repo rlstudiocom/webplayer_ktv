@@ -46,6 +46,8 @@
             }
         },
         created() {
+            if(!this.$parent.$parent.channel)
+                this.$parent.$parent.channel = this.channel
             this.calcProgress()
             window.setInterval(() => {
                 this.calcProgress()

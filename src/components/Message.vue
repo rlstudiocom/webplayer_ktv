@@ -18,10 +18,12 @@
                     if (err)
                         console.error(err.message);
                     else {
-                        if(data.error)
+                        if(data.error) {
                             self.$parent.$parent.hasError(data.error)
-                        else
+                        }
+                        else {
                             self.message.body = data.message.body // Todo: починить пустое значение, чтобы выводилось потом
+                        }
                     }
                 })
             },

@@ -1,7 +1,7 @@
 <template>
     <div>
 
-        <div id="main" v-if="account.account.login">
+        <div id="main" v-if="account.account.login" @keyup.esc="hideTab">
 
             <ChannelList :channelList="channelList" :tab="tab" v-show="tab.current == 'channels'"></ChannelList>
 
@@ -27,11 +27,11 @@
                         <input type="password" v-model.number="login.pass">
                         <button type="submit">Войти</button>
                     </form>
-                    <a href="https://kartina.tv/shop" id="shop"><i class="fa fa-shopping-cart"></i> Нет абонемента?</a>
+                    <a href="https://kartina.tv/shop" id="shop"><i class="lnr lnr-store"></i> Купить абонемент</a>
                 </div>
                 <br class="clear">
                 <h2>Круглосуточная техподдержка</h2>
-                <h3><a href="tel:49698484540" class="color-black"><i class="fa fa-phone"></i> +49 69 84 84 540</a></h3>
+                <h3><a href="tel:49698484540" class="color-black"><i class="lnr lnr-phone-handset"></i> +49 69 84 84 540</a></h3>
             </div>
         </div>
 
@@ -62,11 +62,7 @@
                 player: false,
                 lastUpdated: 0, // время последнего запроса списка каналов
                 channelList: [],
-                channel: {
-                    id: 2,
-                    name: 'Первый',
-                    big_icon_link: 'http://anysta.kartina.tv/assets/img/logo/comigo/1/2.7.png'
-                },
+                channel: false,
                 login: {
                     abo: '',
                     pass: ''
@@ -103,7 +99,7 @@
                     autoplay: true,
                     height: 500,
                     language: 'ru',
-                    controlBar: false
+                    controls: false
                 }
             }
         },
@@ -240,7 +236,6 @@
             account: function() {
                 if(this.account.account.login) {
                     this.apiGetChannelList()
-                    this.apiGetUrl(this.channel.id)
                 }
             }
         },
@@ -368,10 +363,8 @@
             getLogin: function () {
                 this.apiGetLogon()
 
-                if(this.account.account.login) {
+                if(this.account.account.login)
                     this.apiGetChannelList()
-                    this.apiGetUrl(2)
-                }
             },
             checkAccount: function () {
                 this.apiGetAccount()
@@ -388,7 +381,7 @@
                     this.tab.current = this.tab.last = k
                 }
             },
-            hideTab: function (k) {
+            hideTab: function () {
                 this.tab.current = false
             },
             showToast: function (message, theme) {

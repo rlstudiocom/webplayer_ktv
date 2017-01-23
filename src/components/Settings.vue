@@ -32,7 +32,7 @@
                 </select>
             </div>
         </div>
-        <a href="#" class="close" @click.prevent="hideTab"><i class="fa fa-times"></i></a>
+        <a href="#" class="close" @click.prevent="hideTab"><i class="lnr lnr-cross"></i></a>
     </div>
 </template>
 <script>
