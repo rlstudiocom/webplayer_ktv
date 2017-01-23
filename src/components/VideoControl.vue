@@ -1,13 +1,13 @@
 <template lang="html">
     <div id="videoControl" v-show="!tab.current">
         <div class="nav">
-            <a title="Каналы" class="active" @click.prevent="showTab('channels')"><i class="lnr lnr-menu"></i></a>
-            <a title="Программа передач" @click.prevent="showTab('epg')"><i class="lnr lnr-calendar-full"></i></a>
-            <a title="Видеотека" @click.prevent="showTab('vod')"><i class="lnr lnr-camera-video"></i></a>
+            <a title="Каналы" class="active" @click.prevent="showTab('channels')"><i class="icon-menu"></i></a>
+            <a title="Программа передач" @click.prevent="showTab('epg')"><i class="icon-calendar"></i></a>
+            <a title="Видеотека" @click.prevent="showTab('vod')"><i class="icon-film"></i></a>
         </div>
         <div class="channel">
             <div :style="{ 'background-image': 'url(' + channel.big_icon_link + ')' }">
-                <div class="archive" v-show="channel.have_archive" title="Есть архив"><i class="lnr lnr-clock"></i></div>
+                <!--div class="archive" v-show="channel.have_archive" title="Есть архив"><i class="lnr lnr-clock"></i></div-->
                 <div class="name">{{ channel.name }}</div>
                 <div class="programm" v-bind:title="channel.epg_progname">{{ channel.epg_progname }}</div>
                 <div class="time" v-show="channel.epg_start">
@@ -17,12 +17,19 @@
                     </div>
                     <div class="end">{{ channel.epg_end | time }}</div>
                 </div>
+                <div class="controls">
+                    <a href="#" @click.prevent="volDown"><i class="icon-volume-1"></i></a>
+                    <a href="#" @click.prevent="volUp"><i class="icon-volume-2"></i></a>
+                    <a href="#" @click.prevent="stop"><i class="icon-control-pause"></i></a>
+                    <a href="#" @click.prevent="play"><i class="icon-control-play"></i></a>
+                    <a href="#" @click.prevent="fullScreen"><i class="icon-fullsize"></i></a>
+                </div>
             </div>
         </div>
         <div class="nav right">
-            <a title="Сообщения" @click.prevent="showTab('messages')"><i class="lnr lnr-envelope"></i> <span v-show="newMessages">{{ newMessages }}</span></a>
-            <a title="Настройки" @click.prevent="showTab('settings')"><i class="lnr lnr-cog"></i></a>
-            <a title="Выход" @click.prevent="getLogout"><i class="lnr lnr-exit"></i></a>
+            <a title="Сообщения" @click.prevent="showTab('messages')"><i class="icon-envelope"></i> <span v-show="newMessages">{{ newMessages }}</span></a>
+            <a title="Настройки" @click.prevent="showTab('settings')"><i class="icon-settings"></i></a>
+            <a title="Выход" @click.prevent="getLogout"><i class="icon-power"></i></a>
         </div>
     </div>
 </template>
@@ -81,11 +88,10 @@
     }
     #videoControl .nav.right {
         float: right;
-
         border-right: 0;
         border-left: solid 1px rgba(255,255,255,.2);
     }
-    #videoControl .nav a {
+    #videoControl .nav a, #videoControl .controls a {
         display: inline-block;
         padding: 8px 10px 12px;
         line-height: 13px;
@@ -104,5 +110,17 @@
         width: 552px;
         float: left;
         border: none;
+    }
+    #videoControl .channel > div {
+        padding: 0 10px 0 110px;
+    }
+    #videoControl .channel .programm {
+        min-height: 14px;
+        height: 14px;
+    }
+    #videoControl .controls a {
+        color: #fff;
+        text-decoration: none;
+        border: 0;
     }
 </style>

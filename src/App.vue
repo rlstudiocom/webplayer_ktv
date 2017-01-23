@@ -27,11 +27,11 @@
                         <input type="password" v-model.number="login.pass">
                         <button type="submit">Войти</button>
                     </form>
-                    <a href="https://kartina.tv/shop" id="shop"><i class="lnr lnr-store"></i> Купить абонемент</a>
+                    <a href="https://kartina.tv/shop" id="shop"><i class="icon-basket"></i> Купить абонемент</a>
                 </div>
                 <br class="clear">
                 <h2>Круглосуточная техподдержка</h2>
-                <h3><a href="tel:49698484540" class="color-black"><i class="lnr lnr-phone-handset"></i> +49 69 84 84 540</a></h3>
+                <h3><a href="tel:49698484540" class="color-black"><i class="icon-phone"></i> +49 69 84 84 540</a></h3>
             </div>
         </div>
 
@@ -645,5 +645,20 @@
 
     *:focus {
         outline: #999;
+    }
+
+    a.close {
+        position: fixed;
+        display: block;
+        top: 10px;
+        right: 10px;
+        width: 33px;
+        height: 33px;
+        padding: 10px;
+        font-size: 33px;
+        line-height: 33px;
+        text-align: center;
+        z-index: 999;
+        text-decoration: none;
     }
 </style>
