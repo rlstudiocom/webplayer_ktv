@@ -10,7 +10,6 @@
                 <Channel v-for="channel in group.channels" :channel="channel"></Channel>
             </li>
         </ul>
-        <a href="#" class="close" @click.prevent="hideTab"><i class="fa fa-times"></i></a>
     </div>
 
 </template>
@@ -79,18 +78,5 @@
         color: #fff;
         padding: 20px;
         background: linear-gradient(to top, rgba(0,0,0,.25), rgba(0,0,0,.1));
-    }
-    #channels .close {
-        position: fixed;
-        display: block;
-        top: 10px;
-        right: 10px;
-        width: 33px;
-        height: 33px;
-        padding: 10px;
-        font-size: 33px;
-        line-height: 33px;
-        text-align: center;
-        z-index: 999;
     }
 </style>

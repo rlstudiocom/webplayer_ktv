@@ -10,9 +10,11 @@
             <Settings :account="account" :tab="tab" ref="settings" v-show="tab.current == 'settings'"></Settings>
 
             <div id="player">
-                <VideoPlayer :videoOptions="videoOptions" ref="player"></VideoPlayer>
+                <VideoPlayer :videoOptions="videoOptions" ref="myPlayer"></VideoPlayer>
                 <VideoControl :channel="channel" :tab="tab" :newMessages="newMessages"></VideoControl>
             </div>
+
+            <a href="#" class="close" @click.prevent="hideTab" v-show="tab.current"><i class="icon-close"></i></a>
 
         </div>
 
@@ -59,7 +61,6 @@
                 server: 'https://iptv.kartina.tv/api/json/',
                 error: false,
                 info: false,
-                player: false,
                 lastUpdated: 0, // время последнего запроса списка каналов
                 channelList: [],
                 channel: false,
@@ -90,7 +91,7 @@
                 videoOptions: {
                     source: {
                         type: 'application/x-mpegURL',
-                        src: 'https://logos-channel.scaleengine.net/logos-channel/live/biblescreen-ad-free/playlist.m3u8',
+                        src: '',
                         label: 'Первый',
                         withCredentials: false
                     },
@@ -99,6 +100,7 @@
                     autoplay: true,
                     height: 500,
                     language: 'ru',
+                    volume: .5,
                     controls: false
                 }
             }
@@ -241,11 +243,20 @@
         },
         created: function () {
             this.checkAccount()
-
-            window.addEventListener('resize', this.handleResize)
             this.videoOptions.height = window.innerHeight
+//            window.addEventListener('resize', this.handleResize)
+        },
+        computed: {
+            player () {
+                return this.$refs.myPlayer.player
+            }
         },
         mounted: function () {
+//            this.volume = this.player.volume()
+            this.$nextTick(function() {
+                window.addEventListener('resize', this.handleResize)
+                this.handleResize()
+            })
             this.$refs.toast.setOptions({
                 maxToasts: 6,
                 position: 'right bottom'
@@ -254,7 +265,7 @@
         methods: {
             apiGetLogon: function () {
                 var self = this
-                jsonp(self.server + 'login?login=' + self.login.abo + '&pass=' + self.login.pass + '&soft_id=web-ktv-002&cli_serial=webplayer', null, function (err, data) {
+                jsonp(self.server + 'login?login=' + self.login.abo + '&pass=' + self.login.pass + '&softid=web-ktv-002&cli_serial=webplayer', null, function (err, data) {
                     if (err) {
                         console.error(err.message)
                     } else {
@@ -357,9 +368,6 @@
                     }
                 })
             },
-            handleResize: function () {
-                this.videoOptions.height = window.innerHeight
-            },
             getLogin: function () {
                 this.apiGetLogon()
 
@@ -393,7 +401,16 @@
             },
             getNow: function () {
                 return Math.trunc((new Date()).getTime() / 1000)
+            },
+            calcOffset: function () {
+
+            },
+            handleResize: function (event) {
+                this.videoOptions.height = window.innerHeight
             }
+        },
+        beforeDestroy() {
+            window.removeEventListener('resize', this.handleResize)
         }
     }
 
@@ -403,9 +420,9 @@
     @import url('https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,900&subset=cyrillic');
 
     html, body, #main, #player {
-        width: 100%;
-        height: 100%;
-        background: #2a2a2a url(assets/43a9a631.png);
+        width: 100vw;
+        height: 100vh;
+        background: #2a2a2a url(./assets/43a9a631.png);
         color: #fff;
         margin: 0;
         padding: 0;
@@ -422,9 +439,6 @@
         font-family: 'Roboto', sans-serif;
         font-weight: 300;
     }
-
-
-
 
     #login ul, #login li {
         margin: 0;
@@ -539,7 +553,7 @@
     }
 
     #sidenav {
-        height: 100%;
+        height: 100vh;
         position: absolute;
         left: 0;
         top: 0;
@@ -595,14 +609,14 @@
         position: absolute;
         top: 0;
         left: 0;
-        height: 100%;
+        height: 100vh;
         margin-left: 45px;
         background: rgba(0, 0, 0, 0.2);
         width: 320px;
     }
 
     #sidenav .panels > li {
-        height: 100%;
+        height: 100vh;
     }
 
     #sidenav > ul > li > span#epgBtn {
@@ -660,5 +674,10 @@
         text-align: center;
         z-index: 999;
         text-decoration: none;
+        color: #fff;
+    }
+
+    .video-js {
+        height: 100%;
     }
 </style>

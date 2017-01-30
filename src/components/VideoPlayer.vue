@@ -32,6 +32,6 @@
 </script>
 <style lang="css">
     videoPlayer, .video-player {
-        height: 100%;
+        height: 100vh;
     }
 </style>

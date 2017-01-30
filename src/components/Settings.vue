@@ -32,20 +32,14 @@
                 </select>
             </div>
         </div>
-        <a href="#" class="close" @click.prevent="hideTab"><i class="icon-close"></i></a>
     </div>
 </template>
 <script>
-    import jsonp from 'jsonp'
-
     export default{
         props: [ 'tab', 'account'],
         methods: {
             sendSettings: function (k) {
                 this.$parent.apiSendSettings(k)
-            },
-            hideTab: function () {
-                this.tab.current = false
             }
         },
         filters: {
@@ -109,19 +103,5 @@
     #settings select option {
         background: #2a2a2a;
         border: 0;
-    }
-    #settings .close {
-        position: fixed;
-        display: block;
-        top: 10px;
-        right: 10px;
-        width: 33px;
-        height: 33px;
-        padding: 10px;
-        font-size: 33px;
-        line-height: 33px;
-        text-align: center;
-        z-index: 999;
-        color: #fff;
     }
 </style>
