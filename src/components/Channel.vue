@@ -1,6 +1,6 @@
 <template lang="html">
-    <div class="channel">
-        <div :style="{ 'background-image': 'url(' + channel.big_icon_link + ')' }" @click="showVideo">
+    <li class="channel">
+        <div :style="{ 'background-image': 'url(' + channel.icon + ')' }" @click="showVideo">
             <div class="archive" v-show="channel.have_archive" title="Есть архив"><i class="fa fa-circle"></i></div>
             <div class="name">{{ channel.name }}</div>
             <div class="programm" v-bind:title="channel.epg_progname">{{ channel.epg_progname }}</div>
@@ -12,7 +12,7 @@
                 <div class="end">{{ channel.epg_end | time }}</div>
             </div>
         </div>
-    </div>
+    </li>
 </template>
 <script>
     export default{
@@ -63,7 +63,7 @@
         padding: 10px 10px 10px 110px;
         border-bottom: solid 1px rgba(255,255,255,.1);
         border-right: solid 1px rgba(255,255,255,.1);
-        height: 100px;
+        height: 80px;
         /*transition: height 2s ease;*/
     }
     #channels .channel:hover {
@@ -84,8 +84,8 @@
         color: #dedede;
         font-size: 12px;
         line-height: 14px;
-        min-height: 42px;
-        height: 42px;
+        min-height: 28px;
+        height: 28px;
         overflow: hidden;
         margin: 0 0 8px;
         /*transition: height 2s ease;*/

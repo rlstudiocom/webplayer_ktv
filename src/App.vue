@@ -3,7 +3,7 @@
 
         <div id="main" v-if="account.account.login" @keyup.esc="hideTab">
 
-            <ChannelList :channelList="channelList" :tab="tab" v-show="tab.current == 'channels'"></ChannelList>
+            <Channellist :groups="groups" :channels="channels" :tab="tab" v-show="tab.current == 'channels'"></Channellist>
 
             <MessagesList :tab="tab" v-show="tab.current == 'messages'"></MessagesList>
 
@@ -47,7 +47,7 @@
     import 'vue-toast/dist/vue-toast.min.css'
     import vueToast from 'vue-toast'
 
-    import ChannelList from './components/ChannelList.vue'
+    import Channellist from './components/Channellist.vue'
     import VideoControl from './components/VideoControl.vue'
     import MessagesList from './components/MessagesList.vue'
     import Settings from './components/Settings.vue'
@@ -55,13 +55,15 @@
 
     export default {
         name: 'app',
-        components: { ChannelList, MessagesList, Settings, VideoPlayer, VideoControl, vueToast },
+        components: { Channellist, MessagesList, Settings, VideoPlayer, VideoControl, vueToast },
         data () {
             return {
                 server: 'https://iptv.kartina.tv/api/json/',
                 error: false,
                 info: false,
                 lastUpdated: 0, // время последнего запроса списка каналов
+                groups: [],
+                channels: [],
                 channelList: [],
                 channel: false,
                 login: {
@@ -100,7 +102,7 @@
                     autoplay: true,
                     height: 500,
                     language: 'ru',
-                    volume: .5,
+                    volume: .05,
                     controls: false
                 }
             }
@@ -307,11 +309,33 @@
                             if (data.error) {
                                 self.error = data.error
                             } else {
-                                self.channelList = data.groups
 //                                self.serverTime = data.servertime
                                 self.newMessages = data.messages
 //                                self.$parent.serverOffset = Math.floor(Date.now() - self.serverTime * 1000) // Todo: вычислять корректно сдвиг относительно сервера в часах
                                 //console.log(self.serverOffset)
+
+                                self.groups = []
+                                self.channels = []
+                                data.groups.forEach(function(group, i, arr) {
+                                    self.groups.push({
+                                        id: group.id,
+                                        name: group.name,
+                                        color: group.color
+                                    })
+
+                                    group.channels.forEach(function(channel, i, arr) {
+                                        self.channels.push({
+                                            id: channel.id,
+                                            group_id: group.id,
+                                            name: channel.name,
+                                            icon: channel.big_icon_link,
+                                            epg_progname: channel.epg_progname,
+                                            epg_start: channel.epg_start,
+                                            epg_end: channel.epg_end,
+                                            archive: channel.have_archive
+                                        })
+                                    })
+                                })
                             }
                         }
                     })
@@ -429,6 +453,15 @@
         font-family: 'Roboto', sans-serif;
         overflow: hidden;
         position: relative;
+    }
+
+    .screen {
+        width: 100vw;
+        height: 100vh;
+        position: absolute;
+        top: 0;
+        left: 0;
+        overflow: hidden;
     }
 
     .clear {
